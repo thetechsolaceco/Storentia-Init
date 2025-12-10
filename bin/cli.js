@@ -158,6 +158,44 @@ NEXTAUTH_SECRET=your_nextauth_secret_here
             }
         }
 
+        // Clean up unnecessary files
+        console.log('\n🧹 Cleaning up unnecessary files...');
+        const filesToRemove = [
+            // Documentation files
+            'PUBLISHING_GUIDE.md',
+            'NPM_2FA_SETUP.md',
+            'SETUP_SUMMARY.md',
+            'CLI_USAGE_EXAMPLES.md',
+            'INTERACTIVE_CLI_UPDATE.md',
+            'TESTING_BEFORE_PUBLISH.md',
+            'WHY_NPM_CREATE_DOESNT_WORK.md',
+            'NPX_USAGE_GUIDE.md',
+            'PUBLISHED_SUCCESS.md',
+            // Publishing scripts
+            'publish.sh',
+            'test-cli.sh',
+            // NPM files
+            '.npmignore',
+            // Tarballs
+            'create-storentia-1.0.2.tgz',
+            'storentia-create-1.0.1.tgz',
+            // CLI directory
+            'bin'
+        ];
+
+        filesToRemove.forEach(file => {
+            const filePath = path.join(projectPath, file);
+            if (fs.existsSync(filePath)) {
+                const stats = fs.statSync(filePath);
+                if (stats.isDirectory()) {
+                    fs.rmSync(filePath, { recursive: true, force: true });
+                } else {
+                    fs.unlinkSync(filePath);
+                }
+            }
+        });
+        console.log('  ✅ Removed unnecessary files');
+
         // Navigate to project directory and install dependencies
         console.log('\n📥 Installing dependencies...');
         execSync('npm install', {
