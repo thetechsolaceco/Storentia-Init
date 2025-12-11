@@ -28,7 +28,7 @@ export function AdminHeader() {
 
   const handleLogout = () => {
     clearUserSession();
-    router.push("/dashboard/login");
+    router.push("/storentia/login");
   };
 
   const userName = user?.name || "User";

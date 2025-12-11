@@ -155,7 +155,7 @@ export default function DashboardPage() {
               ))}
             </div>
             <div className="mt-6">
-              <Link href="/dashboard/orders">
+              <Link href="/storentia/dashboard/orders">
                 <Button variant="outline" className="w-full">
                   View All Orders
                 </Button>

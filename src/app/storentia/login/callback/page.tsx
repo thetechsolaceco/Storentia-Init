@@ -30,7 +30,6 @@ export default function GoogleCallbackPage() {
       }
 
       if (token) {
-        // Store user session
         setUserSession(token, {
           id: userId || "",
           name: name || "",
@@ -42,9 +41,8 @@ export default function GoogleCallbackPage() {
         setStatus("success");
         setMessage("Authentication successful!");
 
-        // Redirect to dashboard
         setTimeout(() => {
-          router.push("/dashboard");
+          router.push("/storentia/dashboard");
         }, 1500);
       } else {
         setStatus("error");
@@ -103,7 +101,7 @@ export default function GoogleCallbackPage() {
                 <p className="text-sm text-red-600 dark:text-red-400">{message}</p>
                 <Button
                   variant="outline"
-                  onClick={() => router.push("/dashboard/login")}
+                  onClick={() => router.push("/storentia/login")}
                   className="mt-4"
                 >
                   Back to Login

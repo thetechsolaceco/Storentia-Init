@@ -16,14 +16,8 @@ export default function AdminLayout({
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Skip check for login page
-    if (pathname === "/dashboard/login") {
-      setIsLoading(false);
-      return;
-    }
-
     if (!isAuthenticated()) {
-      router.push("/dashboard/login");
+      router.push("/storentia/login");
     } else {
       setIsLoading(false);
     }
@@ -35,10 +29,6 @@ export default function AdminLayout({
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
-  }
-
-  if (pathname === "/dashboard/login") {
-    return <>{children}</>;
   }
 
   return (
