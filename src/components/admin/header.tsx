@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Bell, Search, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -17,18 +18,21 @@ import {
 
 export function AdminHeader() {
   const { user, logout, isLoading } = useAuth();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const userName = user?.name || "User";
   const userEmail = user?.email || "";
-  const userImage = (user as { picture?: string })?.picture || user?.image || "";
+  const userAvatar = user?.avatar || "";
   const initials = userName
     .split(" ")
     .map((n) => n[0])
     .join("")
     .toUpperCase()
     .slice(0, 2);
-
-  console.log("[AdminHeader] User:", user, "Loading:", isLoading);
 
   return (
     <header className="h-16 bg-background border-b flex items-center justify-between px-6 sticky top-0 z-30">
@@ -50,38 +54,50 @@ export function AdminHeader() {
           <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full" />
         </Button>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <div className="flex items-center gap-3 pl-4 border-l cursor-pointer hover:opacity-80 transition-opacity">
-              <div className="text-right hidden md:block">
-                <p className="text-sm font-medium">{userName}</p>
-                <p className="text-xs text-muted-foreground">{userEmail}</p>
+        {mounted ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <div className="flex items-center gap-3 pl-4 border-l cursor-pointer hover:opacity-80 transition-opacity">
+                <div className="text-right hidden md:block">
+                  <p className="text-sm font-medium">{userName}</p>
+                  <p className="text-xs text-muted-foreground">{userEmail}</p>
+                </div>
+                <Avatar>
+                  <AvatarImage src={userAvatar} />
+                  <AvatarFallback>{initials}</AvatarFallback>
+                </Avatar>
               </div>
-              <Avatar>
-                <AvatarImage src={userImage} />
-                <AvatarFallback>{initials}</AvatarFallback>
-              </Avatar>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>
+                <div>
+                  <p className="font-medium">{userName}</p>
+                  <p className="text-xs text-muted-foreground font-normal">
+                    {userEmail}
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={logout}
+                className="text-red-600 cursor-pointer"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <div className="flex items-center gap-3 pl-4 border-l">
+            <div className="text-right hidden md:block">
+              <p className="text-sm font-medium">{userName}</p>
+              <p className="text-xs text-muted-foreground">{userEmail}</p>
             </div>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>
-              <div>
-                <p className="font-medium">{userName}</p>
-                <p className="text-xs text-muted-foreground font-normal">
-                  {userEmail}
-                </p>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={logout}
-              className="text-red-600 cursor-pointer"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            <Avatar>
+              <AvatarFallback>{initials}</AvatarFallback>
+            </Avatar>
+          </div>
+        )}
       </div>
     </header>
   );

@@ -20,16 +20,16 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 const sidebarItems = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/storentia/dashboard" },
-  { icon: Package, label: "Products", href: "/storentia/dashboard/products" },
-  { icon: ShoppingCart, label: "Orders", href: "/storentia/dashboard/orders" },
-  { icon: Users, label: "Customers", href: "/storentia/dashboard/customers" },
-  { icon: Tags, label: "Categories", href: "/storentia/dashboard/categories" },
-  { icon: Percent, label: "Coupons", href: "/storentia/dashboard/coupons" },
-  { icon: ImageIcon, label: "Banners", href: "/storentia/dashboard/banners" },
-  { icon: MessageSquare, label: "Testimonials", href: "/storentia/dashboard/testimonials" },
-  { icon: FileText, label: "Reports", href: "/storentia/dashboard/reports" },
-  { icon: Settings, label: "Settings", href: "/storentia/dashboard/settings" },
+  { icon: LayoutDashboard, label: "Dashboard", href: "/storentia/dashboard", enabled: true },
+  { icon: Tags, label: "Categories", href: "/storentia/dashboard/categories", enabled: true },
+  { icon: Package, label: "Products", href: "/storentia/dashboard/products", enabled: true },
+  { icon: ShoppingCart, label: "Orders", href: "/storentia/dashboard/orders", enabled: false },
+  { icon: Users, label: "Customers", href: "/storentia/dashboard/customers", enabled: false },
+  { icon: Percent, label: "Coupons", href: "/storentia/dashboard/coupons", enabled: false },
+  { icon: ImageIcon, label: "Banners", href: "/storentia/dashboard/banners", enabled: false },
+  { icon: MessageSquare, label: "Testimonials", href: "/storentia/dashboard/testimonials", enabled: false },
+  { icon: FileText, label: "Reports", href: "/storentia/dashboard/reports", enabled: false },
+  { icon: Settings, label: "Settings", href: "/storentia/dashboard/settings", enabled: true },
 ];
 
 export function AdminSidebar() {
@@ -46,31 +46,33 @@ export function AdminSidebar() {
       </div>
 
       <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-        {sidebarItems.map((item) => {
-          const isActive = pathname === item.href;
-          return (
-            <Link key={item.href} href={item.href}>
-              <div
-                className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group",
-                  isActive
-                    ? "bg-[#D1F366] text-black font-medium"
-                    : "text-gray-400 hover:bg-white/5 hover:text-white"
-                )}
-              >
-                <item.icon
+        {sidebarItems
+          .filter((item) => item.enabled)
+          .map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link key={item.href} href={item.href}>
+                <div
                   className={cn(
-                    "h-5 w-5",
+                    "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group",
                     isActive
-                      ? "text-black"
-                      : "text-gray-400 group-hover:text-white"
+                      ? "bg-[#D1F366] text-black font-medium"
+                      : "text-gray-400 hover:bg-white/5 hover:text-white"
                   )}
-                />
-                <span>{item.label}</span>
-              </div>
-            </Link>
-          );
-        })}
+                >
+                  <item.icon
+                    className={cn(
+                      "h-5 w-5",
+                      isActive
+                        ? "text-black"
+                        : "text-gray-400 group-hover:text-white"
+                    )}
+                  />
+                  <span>{item.label}</span>
+                </div>
+              </Link>
+            );
+          })}
       </div>
 
       <div className="p-4 border-t border-white/10">

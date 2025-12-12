@@ -2,6 +2,10 @@ export const API_ENDPOINTS = {
   AUTH_VALIDATE_KEY: "/auth/key/validate",
   AUTH_GOOGLE: "/auth/google",
   AUTH_GOOGLE_CALLBACK: "/auth/google/callback",
+  AUTH_LOGOUT: "/auth/logout",
+
+  USER_ME: "/user/@me",
+  USER_STORE_COLLECTIONS: "/user/store", // + /:storeId/collections
 
   STORE_GET: "/store",
   STORE_UPDATE: "/store",

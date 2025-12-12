@@ -1,7 +1,7 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,8 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Store, AlertCircle } from "lucide-react";
-
-const API_URL = "https://storekit.samarthh.me/v1";
+import { authAPI } from "@/lib/apiClients";
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -38,16 +37,45 @@ function GoogleIcon({ className }: { className?: string }) {
 }
 
 export default function LoginPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        console.log("[Login] Checking if user is already authenticated...");
+        const response = await authAPI.getCurrentUser();
+        console.log("[Login] Auth check response:", response);
+        if (response.success && response.data?.user) {
+          router.replace("/storentia/dashboard");
+          return;
+        }
+      } catch (error) {
+        console.log("[Login] Auth check error:", error);
+      } finally {
+        setIsChecking(false);
+      }
+    };
+
+    checkAuth();
+  }, [router]);
 
   const handleGoogleLogin = () => {
     setIsRedirecting(true);
-    const authUrl = `${API_URL}/auth/google`;
-    console.log("[Login] Redirecting to Google OAuth:", authUrl);
-    window.location.href = authUrl;
+    console.log("[Login] Redirecting to Google OAuth");
+    authAPI.initiateGoogleAuth();
   };
+
+  if (isChecking) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-muted/20">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-muted/20">

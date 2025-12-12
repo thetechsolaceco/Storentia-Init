@@ -5,8 +5,9 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  image?: string;
+  avatar?: string;
   role?: string;
+  status?: string;
 }
 
 export interface StoreOwner {
@@ -43,22 +44,17 @@ export interface ValidationResponse {
   store_data?: StoreData;
 }
 
+export interface UserResponse {
+  success: boolean;
+  data?: {
+    user: User;
+  };
+}
+
 export interface AuthResponse {
   success: boolean;
   message: string;
   user?: User;
-}
-
-function getCookie(name: string): string | null {
-  if (typeof document === "undefined") return null;
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop()?.split(";").shift() || null;
-  return null;
-}
-
-function getSessionId(): string | null {
-  return getCookie("sessionId") || getCookie("session_id") || getCookie("sid");
 }
 
 export const authAPI = {
@@ -90,48 +86,27 @@ export const authAPI = {
     window.location.href = `${BASE_URL}${API_ENDPOINTS.AUTH_GOOGLE}`;
   },
 
-  async getCurrentUser(): Promise<AuthResponse> {
+  async getCurrentUser(): Promise<UserResponse> {
     try {
-      const sessionId = getSessionId();
-      const headers: HeadersInit = {
-        "Content-Type": "application/json",
-      };
-      if (sessionId) {
-        headers["Authorization"] = `Bearer ${sessionId}`;
-      }
-
-      const response = await fetch(`${BASE_URL}/user/@me`, {
+      const response = await fetch(`${BASE_URL}${API_ENDPOINTS.USER_ME}`, {
         method: "GET",
         credentials: "include",
-        headers,
       });
       if (!response.ok) {
-        return { success: false, message: "Not authenticated" };
+        return { success: false };
       }
-      const user = await response.json();
-      return { success: true, message: "Authenticated", user };
-    } catch (error) {
-      return {
-        success: false,
-        message: error instanceof Error ? error.message : "Network error occurred",
-      };
+      const data: UserResponse = await response.json();
+      return data;
+    } catch {
+      return { success: false };
     }
   },
 
   async logout(): Promise<void> {
     try {
-      const sessionId = getSessionId();
-      const headers: HeadersInit = {
-        "Content-Type": "application/json",
-      };
-      if (sessionId) {
-        headers["Authorization"] = `Bearer ${sessionId}`;
-      }
-
-      await fetch(`${BASE_URL}/auth/logout`, {
+      await fetch(`${BASE_URL}${API_ENDPOINTS.AUTH_LOGOUT}`, {
         method: "POST",
         credentials: "include",
-        headers,
       });
     } catch (error) {
       console.error("Logout error:", error);
@@ -171,7 +146,7 @@ export function clearUserSession(): void {
 
 export async function isAuthenticated(): Promise<boolean> {
   const result = await authAPI.getCurrentUser();
-  return result.success && !!result.user;
+  return result.success && !!result.data?.user;
 }
 
 export function isAuthenticatedLocal(): boolean {

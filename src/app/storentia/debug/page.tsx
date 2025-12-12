@@ -3,71 +3,26 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-const BACKEND_API_URL = process.env.NEXT_PUBLIC_API_URL || "https://storekit.samarthh.me/v1";
-const PROXY_API_URL = "/api/backend";
+import { authAPI, BASE_URL } from "@/lib/apiClients";
 
 export default function DebugPage() {
   const [result, setResult] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
-  const testDirectApi = async () => {
+  const testAuthApi = async () => {
     setLoading(true);
     setResult("");
     try {
-      console.log("[Debug] Testing direct API:", `${BACKEND_API_URL}/user/@me`);
-      console.log("[Debug] Cookies:", document.cookie);
-      
-      const response = await fetch(`${BACKEND_API_URL}/user/@me`, {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      const data = await response.json().catch(() => null);
+      console.log("[Debug] Testing authAPI.getCurrentUser()");
+      const response = await authAPI.getCurrentUser();
       
       setResult(JSON.stringify({
-        type: "Direct API",
-        url: `${BACKEND_API_URL}/user/@me`,
-        status: response.status,
+        type: "authAPI.getCurrentUser()",
         cookies: document.cookie,
-        data,
+        response,
       }, null, 2));
     } catch (error) {
-      setResult(`Direct API Error: ${error}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const testProxyApi = async () => {
-    setLoading(true);
-    setResult("");
-    try {
-      console.log("[Debug] Testing proxy API:", `${PROXY_API_URL}/user/@me`);
-      console.log("[Debug] Cookies:", document.cookie);
-      
-      const response = await fetch(`${PROXY_API_URL}/user/@me`, {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      const data = await response.json().catch(() => null);
-      
-      setResult(JSON.stringify({
-        type: "Proxy API",
-        url: `${PROXY_API_URL}/user/@me`,
-        status: response.status,
-        cookies: document.cookie,
-        data,
-      }, null, 2));
-    } catch (error) {
-      setResult(`Proxy API Error: ${error}`);
+      setResult(`API Error: ${error}`);
     } finally {
       setLoading(false);
     }
@@ -81,6 +36,7 @@ export default function DebugPage() {
         storentia_api_key: localStorage.getItem("storentia_api_key"),
         storentia_store: localStorage.getItem("storentia_store"),
       },
+      BASE_URL,
     }, null, 2));
   };
 
@@ -92,19 +48,13 @@ export default function DebugPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-2">
-            <Button onClick={testDirectApi} disabled={loading}>
-              Test Direct API
-            </Button>
-            <Button onClick={testProxyApi} disabled={loading}>
-              Test Proxy API
+            <Button onClick={testAuthApi} disabled={loading}>
+              {loading ? "Testing..." : "Test Auth API"}
             </Button>
             <Button variant="outline" onClick={showCookies}>
-              Show Cookies
+              Show Storage
             </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => window.location.href = `${BACKEND_API_URL}/auth/google`}
-            >
+            <Button variant="outline" onClick={() => authAPI.initiateGoogleAuth()}>
               Login with Google
             </Button>
           </div>

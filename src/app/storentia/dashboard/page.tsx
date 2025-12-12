@@ -24,51 +24,53 @@ import { kpiData, revenueData, recentOrders } from "@/data/admin-mock";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import {
+  authAPI,
+  setStoreData,
+  setApiKey,
+  getStoreData,
+} from "@/lib/apiClients";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://storekit.samarthh.me/v1";
-
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  picture?: string;
-}
+const API_KEY = process.env.NEXT_PUBLIC_STORENTIA_API_KEY || "";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const initDashboard = async () => {
       try {
-        console.log("[Dashboard] Fetching user from:", `${API_URL}/user/@me`);
-        console.log("[Dashboard] Cookies:", document.cookie);
-        
-        const response = await fetch(`${API_URL}/user/@me`, {
-          credentials: "include",
-        });
+        console.log("[Dashboard] Fetching current user...");
+        const userResponse = await authAPI.getCurrentUser();
+        console.log("[Dashboard] User response:", userResponse);
 
-        console.log("[Dashboard] Response status:", response.status);
-
-        if (!response.ok) {
-          console.log("[Dashboard] Not authenticated, redirecting to login");
-          router.push("/storentia/login");
+        if (!userResponse.success || !userResponse.data?.user) {
+          console.log("[Dashboard] No user, redirecting to login");
+          router.replace("/storentia/login");
           return;
         }
 
-        const data = await response.json();
-        console.log("[Dashboard] User data:", data);
-        setUser(data.user || data);
+        const existingStore = getStoreData();
+        if (!existingStore && API_KEY) {
+          console.log("[Dashboard] Validating API key...");
+          const keyResponse = await authAPI.validateKey(API_KEY);
+          console.log("[Dashboard] Key validation response:", keyResponse);
+
+          if (keyResponse.success && keyResponse.store_data) {
+            setApiKey(API_KEY);
+            setStoreData(keyResponse.store_data);
+            console.log("[Dashboard] Store data saved:", keyResponse.store_data);
+          }
+        }
       } catch (error) {
-        console.error("[Dashboard] Error fetching user:", error);
-        router.push("/storentia/login");
+        console.error("[Dashboard] Error:", error);
+        router.replace("/storentia/login");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUser();
+    initDashboard();
   }, [router]);
 
   if (loading) {
@@ -97,26 +99,6 @@ export default function DashboardPage() {
           <Button variant="outline">Last 90 Days</Button>
         </div>
       </div>
-
-      {user && (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              {user.picture && (
-                <img
-                  src={user.picture}
-                  alt={user.name}
-                  className="w-12 h-12 rounded-full"
-                />
-              )}
-              <div>
-                <p className="font-medium">Welcome back, {user.name}</p>
-                <p className="text-sm text-muted-foreground">{user.email}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {kpiData.map((kpi, i) => (
