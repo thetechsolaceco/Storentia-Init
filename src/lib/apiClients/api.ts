@@ -5,7 +5,7 @@ export const API_ENDPOINTS = {
   AUTH_LOGOUT: "/auth/logout",
 
   USER_ME: "/user/@me",
-  USER_STORE_COLLECTIONS: "/user/store", // + /:storeId/collections
+  USER_STORE: "/user/store", // + /:storeId/collections or /products
 
   STORE_GET: "/store",
   STORE_UPDATE: "/store",

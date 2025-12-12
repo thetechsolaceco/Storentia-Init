@@ -1,17 +1,16 @@
-import { fetchWithCredentials, BASE_URL } from "../shared";
+import { BASE_URL } from "../shared";
 import { getStoreData } from "../auth";
 import { API_ENDPOINTS } from "../api";
 
 export interface Collection {
   id: string;
-  name: string;
+  title: string;
   description?: string;
-  image?: string;
-  productCount?: number;
-  isActive: boolean;
-  storeId: string;
-  createdAt: string;
-  updatedAt: string;
+  imageId?: string | null;
+  image?: string | null;
+  products?: unknown[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CollectionParams {
@@ -20,73 +19,171 @@ export interface CollectionParams {
   search?: string;
 }
 
+export interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
 export interface CollectionsResponse {
   success: boolean;
-  data?: {
-    collections: Collection[];
-    pagination: {
-      page: number;
-      limit: number;
-      total: number;
-      totalPages: number;
-    };
-  };
+  data?: Collection[];
+  pagination?: Pagination;
+  message?: string;
+}
+
+export interface CollectionResponse {
+  success: boolean;
+  data?: Collection;
   message?: string;
 }
 
 function getStoreId(): string {
   const storeData = getStoreData();
-  if (!storeData?.storeId) {
+  const storeId = storeData?.storeId || storeData?.store?.id;
+  if (!storeId) {
     throw new Error("Store ID not found. Please validate your API key first.");
   }
-  return storeData.storeId;
+  return storeId;
+}
+
+function getCollectionsEndpoint(storeId: string): string {
+  return `${API_ENDPOINTS.USER_STORE}/${storeId}/collections`;
 }
 
 export const collectionsAPI = {
   async getAll(params?: CollectionParams): Promise<CollectionsResponse> {
-    const storeId = getStoreId();
-    const query = new URLSearchParams();
-    if (params?.page) query.append("page", String(params.page));
-    if (params?.limit) query.append("limit", String(params.limit));
-    if (params?.search !== undefined) query.append("search", params.search);
-    const queryStr = query.toString();
-    
-    const response = await fetch(
-      `${BASE_URL}${API_ENDPOINTS.USER_STORE_COLLECTIONS}/${storeId}/collections${queryStr ? `?${queryStr}` : ""}`,
-      {
+    try {
+      const storeId = getStoreId();
+      const query = new URLSearchParams();
+      if (params?.page) query.append("page", String(params.page));
+      if (params?.limit) query.append("limit", String(params.limit));
+      if (params?.search) query.append("search", params.search);
+      const queryStr = query.toString();
+
+      const url = `${BASE_URL}${getCollectionsEndpoint(storeId)}${queryStr ? `?${queryStr}` : ""}`;
+
+      const response = await fetch(url, {
         method: "GET",
         credentials: "include",
+      });
+
+      if (!response.ok) {
+        return { success: false, message: `API Error: ${response.status}` };
       }
-    );
-    
-    return response.json();
+      return response.json();
+    } catch (error) {
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Network error",
+      };
+    }
   },
 
-  async getById(id: string): Promise<Collection> {
-    const storeId = getStoreId();
-    return fetchWithCredentials(`${API_ENDPOINTS.USER_STORE_COLLECTIONS}/${storeId}/collections/${id}`);
+  async getById(id: string): Promise<CollectionResponse> {
+    try {
+      const storeId = getStoreId();
+      const response = await fetch(
+        `${BASE_URL}${getCollectionsEndpoint(storeId)}/${id}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        return { success: false, message: `API Error: ${response.status}` };
+      }
+      return response.json();
+    } catch (error) {
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Network error",
+      };
+    }
   },
 
-  async create(data: Partial<Collection>): Promise<Collection> {
-    const storeId = getStoreId();
-    return fetchWithCredentials(`${API_ENDPOINTS.USER_STORE_COLLECTIONS}/${storeId}/collections`, {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
+  async create(data: {
+    title: string;
+    description?: string;
+  }): Promise<CollectionResponse> {
+    try {
+      const storeId = getStoreId();
+      const response = await fetch(
+        `${BASE_URL}${getCollectionsEndpoint(storeId)}`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        }
+      );
+
+      if (!response.ok) {
+        return { success: false, message: `API Error: ${response.status}` };
+      }
+      return response.json();
+    } catch (error) {
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Network error",
+      };
+    }
   },
 
-  async update(id: string, data: Partial<Collection>): Promise<Collection> {
-    const storeId = getStoreId();
-    return fetchWithCredentials(`${API_ENDPOINTS.USER_STORE_COLLECTIONS}/${storeId}/collections/${id}`, {
-      method: "PUT",
-      body: JSON.stringify(data),
-    });
+  async update(
+    id: string,
+    data: { title?: string; description?: string }
+  ): Promise<CollectionResponse> {
+    try {
+      const storeId = getStoreId();
+      const response = await fetch(
+        `${BASE_URL}${getCollectionsEndpoint(storeId)}/${id}`,
+        {
+          method: "PUT",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        }
+      );
+
+      if (!response.ok) {
+        return { success: false, message: `API Error: ${response.status}` };
+      }
+      return response.json();
+    } catch (error) {
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Network error",
+      };
+    }
   },
 
-  async delete(id: string): Promise<void> {
-    const storeId = getStoreId();
-    return fetchWithCredentials(`${API_ENDPOINTS.USER_STORE_COLLECTIONS}/${storeId}/collections/${id}`, {
-      method: "DELETE",
-    });
+  async delete(id: string): Promise<{ success: boolean; message?: string }> {
+    try {
+      const storeId = getStoreId();
+      const response = await fetch(
+        `${BASE_URL}${getCollectionsEndpoint(storeId)}/${id}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        return { success: false, message: `API Error: ${response.status}` };
+      }
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Network error",
+      };
+    }
   },
 };
