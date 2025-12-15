@@ -95,8 +95,11 @@ function LoginPage() {
       const result = await verifyOtp({ email, otp });
       
       if (result.success) {
-        // Redirect to store home page after successful login (not dashboard)
+        // Dispatch custom event to notify header of auth change
+        window.dispatchEvent(new Event('auth-change'));
+        // Redirect to store home page after successful login
         router.push('/');
+        router.refresh();
       } else {
         setError(result.error || 'Invalid OTP');
       }

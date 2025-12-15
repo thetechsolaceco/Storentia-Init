@@ -43,8 +43,17 @@ export function Header() {
       checkAuth();
     };
 
+    // Listen for custom auth-change event (when user logs in on same tab)
+    const handleAuthChange = () => {
+      checkAuth();
+    };
+
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener('auth-change', handleAuthChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('auth-change', handleAuthChange);
+    };
   }, []);
 
   const handleLogout = async () => {

@@ -40,6 +40,52 @@ export { usersAPI, type UserAccount, type UserParams } from "./users";
 export { fetchWithCredentials, fetchWithApiKey, BASE_URL } from "./shared";
 export { API_ENDPOINTS } from "./api";
 
-// Store Customer APIs
-export * from "./store/authentication";
-export * from "./store/billing";
+// Store Public APIs
+export {
+  storeAPI,
+  type StoreProduct,
+  type StoreProductImage,
+  type StoreProductsResponse,
+  type StoreProductResponse,
+  type PublicProductParams,
+  type StoreCollection,
+  type StoreCollectionsResponse,
+  type PublicCollectionParams,
+} from "./store";
+
+// Address/Billing APIs
+export {
+  getAllAddresses,
+  createAddress,
+  updateAddress,
+  deleteAddress,
+  setDefaultAddress,
+  type Address,
+  type AddressData,
+  type CreateAddressRequest,
+  type AddressResponse,
+  type SingleAddressResponse,
+} from "./store/address";
+
+// Profile APIs
+export {
+  getUserProfile,
+  updateUserProfile,
+  type UserProfile,
+  type UpdateProfileRequest,
+  type ProfileResponse,
+  type UpdateProfileResponse,
+} from "./store/profile";
+
+// Cart APIs
+export {
+  getCart,
+  addToCart,
+  removeFromCart,
+  clearCart,
+  updateCartItemQuantity,
+  type Cart,
+  type CartItem,
+  type CartResponse,
+  type AddToCartRequest,
+} from "./store/cart";

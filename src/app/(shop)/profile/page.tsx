@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
@@ -22,17 +23,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Edit, Trash2, MapPin } from "lucide-react";
+import { Plus, Edit, Trash2, MapPin, User, Loader2 } from "lucide-react";
 import {
   getAllAddresses,
   createAddress,
   updateAddress,
   deleteAddress,
   setDefaultAddress,
+  getUserProfile,
+  updateUserProfile,
   type Address,
   type CreateAddressRequest,
+  type UserProfile,
 } from "@/lib/apiClients";
-import { getStoreUser } from "@/lib/apiClients/store/authentication";
 
 export default function ProfilePage() {
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -40,8 +43,11 @@ export default function ProfilePage() {
   const [error, setError] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
-  const [user, setUser] = useState<any>(null);
-  const [isHydrated, setIsHydrated] = useState(false);
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [userLoading, setUserLoading] = useState(true);
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileForm, setProfileForm] = useState({ name: '', avatar: '' });
 
   // Form state for new/edit address
   const [formData, setFormData] = useState<CreateAddressRequest>({
@@ -58,16 +64,48 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
-    // Set hydrated flag to prevent hydration mismatch
-    setIsHydrated(true);
-    loadAddresses();
     loadUser();
+    loadAddresses();
   }, []);
 
-  const loadUser = () => {
-    if (typeof window !== 'undefined') {
-      const userData = getStoreUser();
-      setUser(userData);
+  const loadUser = async () => {
+    setUserLoading(true);
+    try {
+      const result = await getUserProfile();
+      if (result.success && result.data?.user) {
+        setUser(result.data.user);
+        setProfileForm({
+          name: result.data.user.name || '',
+          avatar: result.data.user.avatar || '',
+        });
+      }
+    } catch (error) {
+      console.error('Failed to load user profile:', error);
+    } finally {
+      setUserLoading(false);
+    }
+  };
+
+  const handleUpdateProfile = async () => {
+    setProfileSaving(true);
+    try {
+      const result = await updateUserProfile({
+        name: profileForm.name,
+        avatar: profileForm.avatar || undefined,
+      });
+      
+      if (result.success) {
+        // Reload user data
+        await loadUser();
+        setIsEditProfileOpen(false);
+        setError('');
+      } else {
+        setError(result.error || 'Failed to update profile');
+      }
+    } catch (error) {
+      setError('An error occurred while updating profile');
+    } finally {
+      setProfileSaving(false);
     }
   };
 
@@ -77,15 +115,14 @@ export default function ProfilePage() {
       const result = await getAllAddresses();
       
       if (result.success && result.data) {
-        // Ensure data is an array
         const addressData = Array.isArray(result.data) ? result.data : [];
         setAddresses(addressData);
       } else {
-        setAddresses([]); // Set empty array on error
+        setAddresses([]);
         setError(result.error || 'Failed to load addresses');
       }
     } catch (error) {
-      setAddresses([]); // Set empty array on exception
+      setAddresses([]);
       setError('An error occurred while loading addresses');
     } finally {
       setLoading(false);
@@ -99,7 +136,7 @@ export default function ProfilePage() {
       if (result.success) {
         setIsAddDialogOpen(false);
         resetForm();
-        setError(''); // Clear any previous errors
+        setError('');
         loadAddresses();
       } else {
         setError(result.error || 'Failed to create address');
@@ -118,7 +155,7 @@ export default function ProfilePage() {
       if (result.success) {
         setEditingAddress(null);
         resetForm();
-        setError(''); // Clear any previous errors
+        setError('');
         loadAddresses();
       } else {
         setError(result.error || 'Failed to update address');
@@ -176,18 +213,19 @@ export default function ProfilePage() {
   const openEditDialog = (address: Address) => {
     setEditingAddress(address);
     setFormData({
-      firstName: address.firstName,
-      lastName: address.lastName,
-      addressLine1: address.addressLine1,
-      addressLine2: address.addressLine2 || '',
-      city: address.city,
-      state: address.state,
-      postalCode: address.postalCode,
-      country: address.country,
-      phone: address.phone,
-      isDefault: address.isDefault || false,
+      firstName: address.address.firstName,
+      lastName: address.address.lastName,
+      addressLine1: address.address.addressLine1,
+      addressLine2: address.address.addressLine2 || '',
+      city: address.address.city,
+      state: address.address.state,
+      postalCode: address.address.postalCode,
+      country: address.address.country,
+      phone: address.address.phone,
+      isDefault: address.address.isDefault || false,
     });
   };
+
   return (
     <div className="container py-10">
       <h1 className="text-3xl font-bold mb-8">My Account</h1>
@@ -204,48 +242,139 @@ export default function ProfilePage() {
             <CardHeader>
               <CardTitle>Profile Information</CardTitle>
               <CardDescription>
-                Update your personal details here.
+                Your personal details and account information.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {isHydrated ? (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="firstName">First Name</Label>
-                      <Input 
-                        id="firstName" 
-                        defaultValue={user?.firstName || user?.name?.split(' ')[0] || ''} 
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="lastName">Last Name</Label>
-                      <Input 
-                        id="lastName" 
-                        defaultValue={user?.lastName || user?.name?.split(' ')[1] || ''} 
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      defaultValue={user?.email || ''}
-                      disabled
-                      className="bg-muted"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Email cannot be changed. Contact support if needed.
-                    </p>
-                  </div>
-                </>
-              ) : (
+            <CardContent>
+              {userLoading ? (
                 <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : user ? (
+                <div className="space-y-6">
+                  <div className="flex items-start gap-6">
+                    <div className="relative h-24 w-24 rounded-full overflow-hidden bg-muted">
+                      {user.avatar ? (
+                        <Image
+                          src={user.avatar}
+                          alt={user.name}
+                          fill
+                          sizes="96px"
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="h-full w-full flex items-center justify-center">
+                          <User className="h-12 w-12 text-muted-foreground" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 space-y-1">
+                      <h3 className="text-xl font-semibold">{user.name}</h3>
+                      <p className="text-muted-foreground">{user.email}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">
+                          {user.status}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          Member since {new Date(user.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-muted-foreground">Full Name</Label>
+                      <p className="font-medium">{user.name}</p>
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground">Email</Label>
+                      <p className="font-medium">{user.email}</p>
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground">Account Role</Label>
+                      <p className="font-medium">{user.role}</p>
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground">Last Login</Label>
+                      <p className="font-medium">
+                        {new Date(user.lastLogin).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+
+                  <Dialog open={isEditProfileOpen} onOpenChange={setIsEditProfileOpen}>
+                    <DialogTrigger asChild>
+                      <Button>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit Profile
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Edit Profile</DialogTitle>
+                        <DialogDescription>
+                          Update your profile information.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="profileName">Name</Label>
+                          <Input
+                            id="profileName"
+                            value={profileForm.name}
+                            onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
+                            placeholder="Your name"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="profileAvatar">Avatar URL</Label>
+                          <Input
+                            id="profileAvatar"
+                            value={profileForm.avatar}
+                            onChange={(e) => setProfileForm({ ...profileForm, avatar: e.target.value })}
+                            placeholder="https://example.com/avatar.jpg"
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Enter a URL to an image for your profile picture.
+                          </p>
+                        </div>
+                        {profileForm.avatar && (
+                          <div className="flex justify-center">
+                            <div className="relative h-20 w-20 rounded-full overflow-hidden bg-muted">
+                              <Image
+                                src={profileForm.avatar}
+                                alt="Preview"
+                                fill
+                                sizes="80px"
+                                className="object-cover"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsEditProfileOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button onClick={handleUpdateProfile} disabled={profileSaving}>
+                          {profileSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                          Save Changes
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>Unable to load profile. Please try again later.</p>
+                  <Button variant="outline" className="mt-4" onClick={loadUser}>
+                    Retry
+                  </Button>
                 </div>
               )}
-              <Button>Save Changes</Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -303,13 +432,13 @@ export default function ProfilePage() {
               
               {loading ? (
                 <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {Array.isArray(addresses) ? addresses.map((address) => (
-                    <div key={address.id} className="border rounded-lg p-4 relative">
-                      {address.isDefault && (
+                  {Array.isArray(addresses) && addresses.length > 0 ? addresses.map((addr) => (
+                    <div key={addr.id} className="border rounded-lg p-4 relative">
+                      {addr.address.isDefault && (
                         <div className="absolute top-2 right-2 text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
                           Default
                         </div>
@@ -317,38 +446,38 @@ export default function ProfilePage() {
                       <div className="flex items-start gap-2 mb-2">
                         <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
                         <h3 className="font-semibold">
-                          {address.firstName} {address.lastName}
+                          {addr.address.firstName} {addr.address.lastName}
                         </h3>
                       </div>
                       <p className="text-sm text-muted-foreground ml-6">
-                        {address.addressLine1}
-                        {address.addressLine2 && (
+                        {addr.address.addressLine1}
+                        {addr.address.addressLine2 && (
                           <>
                             <br />
-                            {address.addressLine2}
+                            {addr.address.addressLine2}
                           </>
                         )}
                         <br />
-                        {address.city}, {address.state} {address.postalCode}
+                        {addr.address.city}, {addr.address.state} {addr.address.postalCode}
                         <br />
-                        {address.country}
+                        {addr.address.country}
                         <br />
-                        {address.phone}
+                        {addr.address.phone}
                       </p>
                       <div className="mt-4 flex gap-2">
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => openEditDialog(address)}
+                          onClick={() => openEditDialog(addr)}
                         >
                           <Edit className="h-3 w-3 mr-1" />
                           Edit
                         </Button>
-                        {!address.isDefault && (
+                        {!addr.address.isDefault && (
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleSetDefault(address.id!)}
+                            onClick={() => handleSetDefault(addr.id)}
                           >
                             Set Default
                           </Button>
@@ -357,7 +486,7 @@ export default function ProfilePage() {
                           variant="ghost"
                           size="sm"
                           className="text-destructive"
-                          onClick={() => handleDeleteAddress(address.id!)}
+                          onClick={() => handleDeleteAddress(addr.id)}
                         >
                           <Trash2 className="h-3 w-3 mr-1" />
                           Delete
