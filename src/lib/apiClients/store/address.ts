@@ -132,7 +132,7 @@ export async function setDefaultAddress(addressId: string): Promise<SingleAddres
   try {
     const storeId = getStoreId();
     const response = await fetch(`${BASE_URL}/store/${storeId}/billing/${addressId}/default`, {
-      method: "PUT",
+      method: "PATCH",
       credentials: "include",
     });
 

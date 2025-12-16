@@ -30,12 +30,15 @@ import {
   setApiKey,
   getStoreData,
 } from "@/lib/apiClients";
+import { useAuth } from "@/components/providers/auth-provider";
+import { PageLoader } from "@/components/admin/page-loader";
 
 const API_KEY = process.env.NEXT_PUBLIC_STORENTIA_API_KEY || "";
 
 export default function DashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const { setUserData } = useAuth();
 
   useEffect(() => {
     const initDashboard = async () => {
@@ -49,6 +52,9 @@ export default function DashboardPage() {
           router.replace("/storentia/login");
           return;
         }
+
+        // Store user data in auth context
+        setUserData(userResponse.data.user);
 
         const existingStore = getStoreData();
         if (!existingStore && API_KEY) {
@@ -74,30 +80,16 @@ export default function DashboardPage() {
   }, [router]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <div className="flex items-center gap-2">
-          <Button variant="outline">Last 7 Days</Button>
-          <Button
-            variant="outline"
-            className="bg-primary text-primary-foreground"
-          >
-            Last 30 Days
-          </Button>
-          <Button variant="outline">Last 90 Days</Button>
-        </div>
+    <div className="space-y-8 font-sans">
+      <div className=" flex items-center justify-between">
+        <div>
+            <h1 className="text-4xl font-playfair font-medium tracking-tight text-emerald-950">Dashboard</h1>
+            <p className="text-gray-500 mt-2 font-inter">Welcome back to your store overview.</p>
+        </div> 
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

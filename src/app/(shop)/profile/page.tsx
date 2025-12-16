@@ -48,6 +48,7 @@ export default function ProfilePage() {
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileForm, setProfileForm] = useState({ name: '', avatar: '' });
+  const [addressSaving, setAddressSaving] = useState(false);
 
   // Form state for new/edit address
   const [formData, setFormData] = useState<CreateAddressRequest>({
@@ -132,6 +133,7 @@ export default function ProfilePage() {
   };
 
   const handleCreateAddress = async () => {
+    setAddressSaving(true);
     try {
       const result = await createAddress(formData);
       
@@ -145,6 +147,8 @@ export default function ProfilePage() {
       }
     } catch (error) {
       setError('An error occurred while creating address');
+    } finally {
+      setAddressSaving(false);
     }
   };
 
@@ -620,10 +624,11 @@ export default function ProfilePage() {
                         </div>
                       </div>
                       <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                        <Button variant="outline" onClick={() => setIsAddDialogOpen(false)} disabled={addressSaving}>
                           Cancel
                         </Button>
-                        <Button onClick={handleCreateAddress}>
+                        <Button onClick={handleCreateAddress} disabled={addressSaving}>
+                          {addressSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                           Add Address
                         </Button>
                       </DialogFooter>

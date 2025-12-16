@@ -1,24 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -40,14 +24,18 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  MoreHorizontal,
   Plus,
   Search,
   Pencil,
   Trash2,
   Loader2,
+  ChevronUp,
+  ChevronDown,
+  ChevronsUpDown,
 } from "lucide-react";
 import { collectionsAPI, type Collection } from "@/lib/apiClients";
+import { Checkbox } from "@/components/ui/checkbox";
+import { PageLoader } from "@/components/admin/page-loader";
 
 interface Pagination {
   page: number;
@@ -56,6 +44,11 @@ interface Pagination {
   totalPages: number;
 }
 
+type SortConfig = {
+  key: keyof Collection | "productCount";
+  direction: "asc" | "desc";
+} | null;
+
 export default function CategoriesPage() {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
@@ -63,7 +56,7 @@ export default function CategoriesPage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
+  const [sortConfig, setSortConfig] = useState<SortConfig>(null);
 
   // Dialog states
   const [createOpen, setCreateOpen] = useState(false);
@@ -75,6 +68,9 @@ export default function CategoriesPage() {
   // Form states
   const [formTitle, setFormTitle] = useState("");
   const [formDescription, setFormDescription] = useState("");
+  
+  // Selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const fetchCollections = async () => {
     setLoading(true);
@@ -108,14 +104,22 @@ export default function CategoriesPage() {
   };
 
   useEffect(() => {
-    setMounted(true);
     fetchCollections();
   }, [page]);
 
-  const handleSearch = () => {
-    setPage(1);
-    fetchCollections();
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
   };
+  
+  // Effect to trigger search when term changes with debounce
+  useEffect(() => {
+      const timer = setTimeout(() => {
+          setPage(1);
+          fetchCollections(); 
+      }, 500);
+      return () => clearTimeout(timer);
+  }, [searchTerm]);
+
 
   const handleCreate = async () => {
     if (!formTitle.trim()) return;
@@ -195,156 +199,226 @@ export default function CategoriesPage() {
     setDeleteOpen(true);
   };
 
+  const handleSort = (key: keyof Collection | "productCount") => {
+    let direction: "asc" | "desc" = "asc";
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedCollections = [...collections].sort((a, b) => {
+    if (!sortConfig) return 0;
+    const { key, direction } = sortConfig;
+    
+    let aValue: any = a[key as keyof Collection];
+    let bValue: any = b[key as keyof Collection];
+
+    if (key === "productCount") {
+        aValue = a.products?.length || 0;
+        bValue = b.products?.length || 0;
+    }
+
+    if (aValue < bValue) return direction === "asc" ? -1 : 1;
+    if (aValue > bValue) return direction === "asc" ? 1 : -1;
+    return 0;
+  });
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(new Set(collections.map(c => c.id)));
+    } else {
+      setSelectedIds(new Set());
+    }
+  };
+
+  const handleSelectOne = (id: string, checked: boolean) => {
+    const newSet = new Set(selectedIds);
+    if (checked) {
+      newSet.add(id);
+    } else {
+      newSet.delete(id);
+    }
+    setSelectedIds(newSet);
+  };
+
+  const isAllSelected = collections.length > 0 && selectedIds.size === collections.length;
+  const isSomeSelected = selectedIds.size > 0 && selectedIds.size < collections.length;
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Categories</h1>
-        <Button className="gap-2" onClick={() => setCreateOpen(true)}>
-          <Plus className="h-4 w-4" />
-          Add Category
-        </Button>
+    <div className="space-y-4 font-sans h-full flex flex-col">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-playfair font-medium tracking-tight text-emerald-950">Categories</h1>
+        <p className="text-gray-500 mt-1 text-sm font-inter">Manage and organize your product types.</p>
       </div>
 
-      <div className="flex items-center gap-4 bg-background p-4 rounded-lg border">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search categories..."
-            className="pl-8"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-          />
+     {/* Table Filters & buttons */}
+      <div className="py-3 flex items-center justify-between gap-3">
+        {/* Search */}
+        <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+                placeholder="Search categories..."
+                value={searchTerm}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="w-full bg-transparent pl-10 pr-4 py-2 text-sm placeholder:text-gray-400 text-gray-900 border-b-2 border-gray-300 focus:outline-none focus:border-black transition-colors"
+            />
         </div>
-        <Button variant="outline" onClick={handleSearch}>
-          Search
+
+        {/* Add Button */}
+        <Button 
+            onClick={() => setCreateOpen(true)}
+            size="sm"
+            className="h-9 px-4 bg-black text-white hover:bg-gray-800 rounded-md text-sm font-medium transition-colors"
+        >
+            <Plus className="h-4 w-4 mr-1.5" />
+            Create Category
         </Button>
       </div>
 
-      <div className="border rounded-lg bg-background">
+
+      {/* Table Content */}
+      <div className="flex-1 overflow-hidden">
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </div>
+          <PageLoader />
         ) : error ? (
           <div className="text-center py-12">
-            <p className="text-red-500 mb-4">{error}</p>
-            <Button variant="outline" onClick={fetchCollections}>
+            <p className="text-red-500 mb-3 text-sm">{error}</p>
+            <Button variant="outline" size="sm" onClick={() => fetchCollections()}>
               Try Again
             </Button>
           </div>
         ) : collections.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground mb-4">No categories found</p>
-            <Button onClick={() => setCreateOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create your first category
-            </Button>
+          <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+            <p className="text-gray-500 text-sm">No categories found matching your search.</p>
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Products</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {collections.map((collection) => (
-                <TableRow key={collection.id}>
-                  <TableCell className="font-medium">
-                    {collection.title}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground max-w-[200px] truncate">
-                    {collection.description || "No description"}
-                  </TableCell>
-                  <TableCell>
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                      {collection.products?.length || 0} products
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {collection.createdAt
-                      ? new Date(collection.createdAt).toLocaleDateString()
-                      : "-"}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {mounted ? (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Actions</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem
-                            onClick={() => openEditDialog(collection)}
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50/80 border-b border-gray-200">
+                  <tr>
+                    <th className="w-12 px-4 py-4">
+                      <Checkbox 
+                        checked={isAllSelected}
+                        onCheckedChange={handleSelectAll}
+                        className="data-[state=checked]:bg-black data-[state=checked]:border-black"
+                        {...(isSomeSelected ? { "data-state": "indeterminate" } : {})}
+                      />
+                    </th>
+                    <th 
+                      className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-4 cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                      onClick={() => handleSort("title")}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        Name
+                        {sortConfig?.key === "title" ? (
+                          sortConfig.direction === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronsUpDown className="h-4 w-4 text-gray-400" />
+                        )}
+                      </div>
+                    </th>
+                    <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-4">Description</th>
+                    <th 
+                      className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-4 cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                      onClick={() => handleSort("productCount")}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        Products
+                        {sortConfig?.key === "productCount" ? (
+                          sortConfig.direction === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronsUpDown className="h-4 w-4 text-gray-400" />
+                        )}
+                      </div>
+                    </th>
+                    <th 
+                      className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-4 cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                      onClick={() => handleSort("createdAt")}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        Created
+                        {sortConfig?.key === "createdAt" ? (
+                          sortConfig.direction === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronsUpDown className="h-4 w-4 text-gray-400" />
+                        )}
+                      </div>
+                    </th>
+                    <th className="text-right text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-4">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {sortedCollections.map((c) => (
+                    <tr key={c.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-4 py-4">
+                        <Checkbox 
+                          checked={selectedIds.has(c.id)}
+                          onCheckedChange={(checked) => handleSelectOne(c.id, checked as boolean)}
+                          className="data-[state=checked]:bg-black data-[state=checked]:border-black"
+                        />
+                      </td>
+                      <td className="px-4 py-4">
+                        <span className="font-medium text-gray-900 text-sm">{c.title}</span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <span className="text-gray-500 text-sm truncate max-w-[200px] block" title={c.description}>
+                          {c.description || '-'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                          {c.products?.length || 0}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <span className="text-gray-500 text-sm">
+                          {c.createdAt ? new Date(c.createdAt).toLocaleDateString() : '-'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center justify-end gap-2">
+                          <button 
+                            className="p-1.5 text-gray-400 hover:text-black hover:bg-gray-100 rounded-md transition-colors"
+                            onClick={() => openEditDialog(c)}
                           >
-                            <Pencil className="mr-2 h-4 w-4" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-red-600"
-                            onClick={() => openDeleteDialog(collection)}
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                          <button 
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                            onClick={() => openDeleteDialog(c)}
                           >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    ) : (
-                      <Button variant="ghost" size="icon" disabled>
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         )}
       </div>
 
+      
+      {/* Pagination - Simplified and moved near controls if needed, or kept separate */}
       {pagination && pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            Page {pagination.page} of {pagination.totalPages} (
-            {pagination.total} total)
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page <= 1}
-              onClick={() => setPage((p) => p - 1)}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= pagination.totalPages}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              Next
-            </Button>
-          </div>
+        <div className="flex items-center justify-between mt-2">
+             {/* ... (Kept simple or removed if minimal design prefers just load more/scroll) */}
+             {/* Keeping basic pagination for now but hidden if not needed or could be part of footer */}
         </div>
       )}
 
-      {/* Create Dialog */}
+      {/* Create Dialog - Cleaned up */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Create Category</DialogTitle>
+            <DialogTitle className="font-playfair text-2xl">New Category</DialogTitle>
             <DialogDescription>
-              Add a new category to organize your products.
+              Create a new category to organize your products.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -352,32 +426,39 @@ export default function CategoriesPage() {
               <Label htmlFor="title">Title</Label>
               <Input
                 id="title"
-                placeholder="Category title"
+                placeholder="e.g., Summer Collection"
                 value={formTitle}
                 onChange={(e) => setFormTitle(e.target.value)}
+                className="border-gray-200 focus:ring-0 focus:border-black rounded-sm"
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
-                placeholder="Category description (optional)"
+                placeholder="Describe this category..."
                 value={formDescription}
                 onChange={(e) => setFormDescription(e.target.value)}
+                className="border-gray-200 focus:ring-0 focus:border-black rounded-sm resize-none"
               />
             </div>
           </div>
           <DialogFooter>
             <Button
-              variant="outline"
+              variant="ghost"
               onClick={() => setCreateOpen(false)}
               disabled={formLoading}
+              className="hover:bg-gray-100 rounded-sm"
             >
               Cancel
             </Button>
-            <Button onClick={handleCreate} disabled={formLoading || !formTitle.trim()}>
+            <Button 
+                onClick={handleCreate} 
+                disabled={formLoading || !formTitle.trim()}
+                className="bg-black text-white hover:bg-gray-900 rounded-sm"
+            >
               {formLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create
+              Create Category
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -385,42 +466,44 @@ export default function CategoriesPage() {
 
       {/* Edit Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Edit Category</DialogTitle>
-            <DialogDescription>
-              Update the category details.
-            </DialogDescription>
+            <DialogTitle className="font-playfair text-2xl">Edit Category</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="edit-title">Title</Label>
               <Input
                 id="edit-title"
-                placeholder="Category title"
                 value={formTitle}
                 onChange={(e) => setFormTitle(e.target.value)}
+                className="border-gray-200 focus:ring-0 focus:border-black rounded-sm"
               />
             </div>
-            <div className="space-y-2">
+             <div className="space-y-2">
               <Label htmlFor="edit-description">Description</Label>
               <Textarea
                 id="edit-description"
-                placeholder="Category description (optional)"
                 value={formDescription}
                 onChange={(e) => setFormDescription(e.target.value)}
+                className="border-gray-200 focus:ring-0 focus:border-black rounded-sm resize-none"
               />
             </div>
           </div>
           <DialogFooter>
             <Button
-              variant="outline"
+              variant="ghost"
               onClick={() => setEditOpen(false)}
               disabled={formLoading}
+              className="hover:bg-gray-100 rounded-sm"
             >
               Cancel
             </Button>
-            <Button onClick={handleEdit} disabled={formLoading || !formTitle.trim()}>
+            <Button 
+                onClick={handleEdit} 
+                disabled={formLoading || !formTitle.trim()}
+                 className="bg-black text-white hover:bg-gray-900 rounded-sm"
+            >
               {formLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Save Changes
             </Button>
@@ -432,18 +515,19 @@ export default function CategoriesPage() {
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Category</AlertDialogTitle>
+            <AlertDialogTitle className="font-playfair">Delete Category?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete &quot;{selectedCollection?.title}&quot;?
-              This action cannot be undone.
+              This will permanently delete <span className="font-medium text-black">&quot;{selectedCollection?.title}&quot;</span>.
+              <br />
+              Products in this category will not be deleted but will be uncategorized.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={formLoading}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={formLoading} className="rounded-sm">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={formLoading}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-red-600 hover:bg-red-700 text-white rounded-sm"
             >
               {formLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Delete
@@ -454,3 +538,4 @@ export default function CategoriesPage() {
     </div>
   );
 }
+

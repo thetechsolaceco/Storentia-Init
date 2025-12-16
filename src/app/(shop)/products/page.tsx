@@ -17,8 +17,8 @@ import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, ShoppingCart } from "lucide-react";
-import { storeAPI, type StoreProduct, type StoreCollection } from "@/lib/apiClients";
+import { Loader2, ShoppingCart, Heart } from "lucide-react";
+import { storeAPI, addToCart, addToWishlist, type StoreProduct, type StoreCollection } from "@/lib/apiClients";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<StoreProduct[]>([]);
@@ -29,6 +29,8 @@ export default function ProductsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
+  const [loadingCart, setLoadingCart] = useState<string | null>(null);
+  const [loadingWishlist, setLoadingWishlist] = useState<string | null>(null);
 
   const fetchCollections = async () => {
     try {
@@ -82,6 +84,37 @@ export default function ProductsPage() {
     setPage(1);
   };
 
+  const handleAddToCart = async (e: React.MouseEvent, productId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setLoadingCart(productId);
+    try {
+      const result = await addToCart({ productId, quantity: 1 });
+      if (!result.success) {
+        console.error("Failed to add to cart:", result.error);
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+    } finally {
+      setLoadingCart(null);
+    }
+  };
+
+  const handleAddToWishlist = async (e: React.MouseEvent, productId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setLoadingWishlist(productId);
+    try {
+      const result = await addToWishlist(productId);
+      if (!result.success) {
+        console.error("Failed to add to wishlist:", result.error);
+      }
+    } catch (error) {
+      console.error("Error adding to wishlist:", error);
+    } finally {
+      setLoadingWishlist(null);
+    }
+  };
 
   return (
     <div className="container py-10">
@@ -242,6 +275,35 @@ export default function ProductsPage() {
                         <p className="text-lg font-bold mt-2">
                           ${product.price.toFixed(2)}
                         </p>
+                        <div className="flex gap-2 mt-3">
+                          <Button
+                            size="sm"
+                            className="flex-1"
+                            onClick={(e) => handleAddToCart(e, product.id)}
+                            disabled={loadingCart === product.id}
+                          >
+                            {loadingCart === product.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <>
+                                <ShoppingCart className="h-4 w-4 mr-1" />
+                                Add to Cart
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(e) => handleAddToWishlist(e, product.id)}
+                            disabled={loadingWishlist === product.id}
+                          >
+                            {loadingWishlist === product.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Heart className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   </Link>
