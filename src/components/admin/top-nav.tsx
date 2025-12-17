@@ -34,31 +34,35 @@ export function TopNav() {
     .toUpperCase()
     .slice(0, 2);
 
+  if (!mounted) {
+    return null;
+  }
+
   return (
-    <div className="flex items-center gap-2 bg-white rounded-full border border-gray-200 p-1.5 shadow-sm">
+    <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 rounded-full border border-gray-200 dark:border-zinc-700 p-1.5 shadow-sm">
       {/* Theme Toggle */}
-      {/* <Button
+      <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8 rounded-full hover:bg-gray-100"
+        className="h-8 w-8 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800"
         onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
       >
-        <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-        <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+        <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-gray-600" />
+        <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-zinc-400" />
         <span className="sr-only">Toggle theme</span>
-      </Button> */}
+      </Button>
 
       {/* Notifications */}
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8 rounded-full hover:bg-gray-100 relative"
+        className="h-8 w-8 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 relative"
       >
-        <Bell className="h-4 w-4 text-gray-600" />
-        <span className="absolute top-2 right-2 h-1.5 w-1.5 bg-red-500 rounded-full border border-white" />
+        <Bell className="h-4 w-4 text-gray-600 dark:text-zinc-400" />
+        <span className="absolute top-2 right-2 h-1.5 w-1.5 bg-red-500 rounded-full border border-white dark:border-zinc-900" />
       </Button>
 
-      <div className="h-4 w-[1px] bg-gray-200 mx-1" />
+      <div className="h-4 w-[1px] bg-gray-200 dark:bg-zinc-700 mx-1" />
 
       {/* User Dropdown */}
       <DropdownMenu>
@@ -66,7 +70,7 @@ export function TopNav() {
           <Button variant="ghost" className="h-8 w-8 p-0 rounded-full">
             <Avatar className="h-8 w-8">
               <AvatarImage src={userAvatar} />
-              <AvatarFallback className="bg-emerald-100 text-emerald-700 text-xs font-medium">
+              <AvatarFallback className="bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 text-xs font-medium">
                 {initials}
               </AvatarFallback>
             </Avatar>

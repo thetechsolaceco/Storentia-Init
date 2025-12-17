@@ -365,13 +365,13 @@ export default function ProductsPage() {
   const getStatusBadge = (status?: string) => {
     switch (status) {
       case "ACTIVE":
-        return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">Active</span>;
+        return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">Active</span>;
       case "DRAFT":
-        return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">Draft</span>;
+        return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300">Draft</span>;
       case "UNLISTED":
-        return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">Unlisted</span>;
+        return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400">Unlisted</span>;
       default:
-        return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">Unknown</span>;
+        return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300">Unknown</span>;
     }
   };
 
@@ -380,8 +380,8 @@ export default function ProductsPage() {
     <div className="space-y-4 font-sans h-full flex flex-col">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-playfair font-medium tracking-tight text-emerald-950">Products</h1>
-        <p className="text-gray-500 mt-1 text-sm font-inter">Manage your product inventory.</p>
+        <h1 className="text-3xl font-playfair font-medium tracking-tight text-emerald-950 dark:text-white">Products</h1>
+        <p className="text-gray-500 dark:text-zinc-400 mt-1 text-sm font-inter">Manage your product inventory.</p>
       </div>
 
       {/* Table Filters & buttons */}
@@ -390,19 +390,19 @@ export default function ProductsPage() {
         <div className="flex items-center gap-3 flex-1">
           {/* Search */}
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-zinc-500" />
             <input
               placeholder="Search products..."
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
-              className="w-full bg-transparent pl-10 pr-4 py-2 text-sm placeholder:text-gray-400 text-gray-900 border-b-2 border-gray-300 focus:outline-none focus:border-black transition-colors"
+              className="w-full bg-transparent pl-10 pr-4 py-2 text-sm placeholder:text-gray-400 dark:placeholder:text-zinc-500 text-gray-900 dark:text-white border-b-2 border-gray-300 dark:border-zinc-700 focus:outline-none focus:border-black dark:focus:border-white transition-colors"
             />
           </div>
 
           {/* Status Filter */}
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[140px] h-9 text-sm border-gray-300">
-              <Filter className="h-4 w-4 mr-2 text-gray-400" />
+            <SelectTrigger className="w-[140px] h-9 text-sm border-gray-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white">
+              <Filter className="h-4 w-4 mr-2 text-gray-400 dark:text-zinc-500" />
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -418,7 +418,7 @@ export default function ProductsPage() {
         <Button
           onClick={() => setCreateOpen(true)}
           size="sm"
-          className="h-9 px-4 bg-black text-white hover:bg-gray-800 rounded-md text-sm font-medium transition-colors"
+          className="h-9 px-4 bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-zinc-200 rounded-md text-sm font-medium transition-colors"
         >
           <Plus className="h-4 w-4 mr-1.5" />
           Add Product
@@ -427,8 +427,8 @@ export default function ProductsPage() {
 
       {/* Bulk Actions */}
       {selectedIds.size > 0 && (
-        <div className="flex items-center gap-3 bg-gray-100 px-4 py-2 rounded-lg">
-          <span className="text-sm font-medium text-gray-700">{selectedIds.size} selected</span>
+        <div className="flex items-center gap-3 bg-gray-100 dark:bg-zinc-800 px-4 py-2 rounded-lg">
+          <span className="text-sm font-medium text-gray-700 dark:text-zinc-300">{selectedIds.size} selected</span>
           <div className="flex gap-2">
             <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => handleBulkStatusChange("ACTIVE")}>
               Set Active
@@ -455,32 +455,32 @@ export default function ProductsPage() {
             </Button>
           </div>
         ) : products.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-            <p className="text-gray-500 text-sm mb-4">No products found.</p>
+          <div className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 p-8 text-center">
+            <p className="text-gray-500 dark:text-zinc-400 text-sm mb-4">No products found.</p>
             <Button size="sm" onClick={() => setCreateOpen(true)}>
               <Plus className="h-4 w-4 mr-1.5" />
               Create your first product
             </Button>
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50/80 border-b border-gray-200">
+                <thead className="bg-gray-50/80 dark:bg-zinc-800/50 border-b border-gray-200 dark:border-zinc-800">
                   <tr>
                     <th className="w-12 px-4 py-4">
                       <Checkbox
                         checked={isAllSelected}
                         onCheckedChange={handleSelectAll}
-                        className="data-[state=checked]:bg-black data-[state=checked]:border-black"
+                        className="data-[state=checked]:bg-black dark:data-[state=checked]:bg-white data-[state=checked]:border-black dark:data-[state=checked]:border-white"
                         {...(isSomeSelected ? { "data-state": "indeterminate" } : {})}
                       />
                     </th>
-                    <th className="w-16 px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="w-16 px-4 py-4 text-left text-xs font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider">
                       Image
                     </th>
                     <th
-                      className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-4 cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                      className="text-left text-xs font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider px-4 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors select-none"
                       onClick={() => handleSort("title")}
                     >
                       <div className="flex items-center gap-1.5">
@@ -488,15 +488,15 @@ export default function ProductsPage() {
                         {sortConfig?.key === "title" ? (
                           sortConfig.direction === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
                         ) : (
-                          <ChevronsUpDown className="h-4 w-4 text-gray-400" />
+                          <ChevronsUpDown className="h-4 w-4 text-gray-400 dark:text-zinc-500" />
                         )}
                       </div>
                     </th>
-                    <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-4">
+                    <th className="text-left text-xs font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider px-4 py-4">
                       Status
                     </th>
                     <th
-                      className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-4 cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                      className="text-left text-xs font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider px-4 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors select-none"
                       onClick={() => handleSort("price")}
                     >
                       <div className="flex items-center gap-1.5">
@@ -504,12 +504,12 @@ export default function ProductsPage() {
                         {sortConfig?.key === "price" ? (
                           sortConfig.direction === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
                         ) : (
-                          <ChevronsUpDown className="h-4 w-4 text-gray-400" />
+                          <ChevronsUpDown className="h-4 w-4 text-gray-400 dark:text-zinc-500" />
                         )}
                       </div>
                     </th>
                     <th
-                      className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-4 cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                      className="text-left text-xs font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider px-4 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors select-none"
                       onClick={() => handleSort("stock")}
                     >
                       <div className="flex items-center gap-1.5">
@@ -517,79 +517,79 @@ export default function ProductsPage() {
                         {sortConfig?.key === "stock" ? (
                           sortConfig.direction === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
                         ) : (
-                          <ChevronsUpDown className="h-4 w-4 text-gray-400" />
+                          <ChevronsUpDown className="h-4 w-4 text-gray-400 dark:text-zinc-500" />
                         )}
                       </div>
                     </th>
-                    <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-4">
+                    <th className="text-left text-xs font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider px-4 py-4">
                       SKU
                     </th>
-                    <th className="text-right text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-4">
+                    <th className="text-right text-xs font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider px-4 py-4">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-gray-100 dark:divide-zinc-800">
                   {sortedProducts.map((product) => (
-                    <tr key={product.id} className="hover:bg-gray-50/50 transition-colors">
+                    <tr key={product.id} className="hover:bg-gray-50/50 dark:hover:bg-zinc-800/50 transition-colors">
                       <td className="px-4 py-4">
                         <Checkbox
                           checked={selectedIds.has(product.id)}
                           onCheckedChange={(checked) => handleSelectOne(product.id, checked as boolean)}
-                          className="data-[state=checked]:bg-black data-[state=checked]:border-black"
+                          className="data-[state=checked]:bg-black dark:data-[state=checked]:bg-white data-[state=checked]:border-black dark:data-[state=checked]:border-white"
                         />
                       </td>
                       <td className="px-4 py-4">
                         <div
-                          className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center cursor-pointer hover:opacity-80 overflow-hidden"
+                          className="h-10 w-10 rounded-lg bg-gray-100 dark:bg-zinc-800 flex items-center justify-center cursor-pointer hover:opacity-80 overflow-hidden"
                           onClick={() => openImageDialog(product)}
                         >
                           {product.images?.[0]?.url ? (
                             <img src={product.images[0].url} alt={product.title} className="h-10 w-10 object-cover" />
                           ) : (
-                            <ImageIcon className="h-5 w-5 text-gray-400" />
+                            <ImageIcon className="h-5 w-5 text-gray-400 dark:text-zinc-500" />
                           )}
                         </div>
                       </td>
                       <td className="px-4 py-4">
-                        <span className="font-medium text-gray-900 text-sm">{product.title}</span>
+                        <span className="font-medium text-gray-900 dark:text-white text-sm">{product.title}</span>
                         {product.description && (
-                          <p className="text-gray-500 text-xs truncate max-w-[200px]" title={product.description}>
+                          <p className="text-gray-500 dark:text-zinc-400 text-xs truncate max-w-[200px]" title={product.description}>
                             {product.description}
                           </p>
                         )}
                       </td>
                       <td className="px-4 py-4">{getStatusBadge(product.status)}</td>
                       <td className="px-4 py-4">
-                        <span className="text-gray-900 text-sm font-medium">${product.price?.toFixed(2) || "0.00"}</span>
+                        <span className="text-gray-900 dark:text-white text-sm font-medium">${product.price?.toFixed(2) || "0.00"}</span>
                       </td>
                       <td className="px-4 py-4">
-                        <span className="text-gray-500 text-sm">{product.stock ?? "-"}</span>
+                        <span className="text-gray-500 dark:text-zinc-400 text-sm">{product.stock ?? "-"}</span>
                       </td>
                       <td className="px-4 py-4">
-                        <span className="text-gray-500 text-sm">{product.sku || "-"}</span>
+                        <span className="text-gray-500 dark:text-zinc-400 text-sm">{product.sku || "-"}</span>
                       </td>
                       <td className="px-4 py-4">
                         <div className="flex items-center justify-end gap-2">
                           <Link href={`/storentia/dashboard/products/${product.id}`}>
-                            <button className="p-1.5 text-gray-400 hover:text-black hover:bg-gray-100 rounded-md transition-colors">
+                            <button className="p-1.5 text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md transition-colors">
                               <Eye className="h-4 w-4" />
                             </button>
                           </Link>
                           <button
-                            className="p-1.5 text-gray-400 hover:text-black hover:bg-gray-100 rounded-md transition-colors"
+                            className="p-1.5 text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md transition-colors"
                             onClick={() => openEditDialog(product)}
                           >
                             <Pencil className="h-4 w-4" />
                           </button>
                           <button
-                            className="p-1.5 text-gray-400 hover:text-black hover:bg-gray-100 rounded-md transition-colors"
+                            className="p-1.5 text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md transition-colors"
                             onClick={() => openImageDialog(product)}
                           >
                             <ImageIcon className="h-4 w-4" />
                           </button>
                           <button
-                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                            className="p-1.5 text-gray-400 dark:text-zinc-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
                             onClick={() => openDeleteDialog(product)}
                           >
                             <Trash2 className="h-4 w-4" />

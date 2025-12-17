@@ -88,18 +88,18 @@ export function DataTable<T extends object>({
     if (!sortable) return null;
     
     if (sortKey !== key) {
-      return <ChevronsUpDown className="w-4 h-4 text-zinc-400" />;
+      return <ChevronsUpDown className="w-4 h-4 text-zinc-400 dark:text-zinc-500" />;
     }
     
     if (sortDirection === 'asc') {
-      return <ChevronUp className="w-4 h-4 text-emerald-900" />;
+      return <ChevronUp className="w-4 h-4 text-emerald-900 dark:text-emerald-400" />;
     }
     
     if (sortDirection === 'desc') {
-      return <ChevronDown className="w-4 h-4 text-emerald-900" />;
+      return <ChevronDown className="w-4 h-4 text-emerald-900 dark:text-emerald-400" />;
     }
     
-    return <ChevronsUpDown className="w-4 h-4 text-zinc-400" />;
+    return <ChevronsUpDown className="w-4 h-4 text-zinc-400 dark:text-zinc-500" />;
   };
 
   const getAlignClass = (align?: 'left' | 'center' | 'right') => {
@@ -112,23 +112,23 @@ export function DataTable<T extends object>({
 
   if (data.length === 0) {
     return (
-      <div className="bg-white rounded-lg border border-zinc-200 p-8 text-center text-sm">
-        <p className="text-zinc-500 font-inter">{emptyMessage}</p>
+      <div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-8 text-center text-sm">
+        <p className="text-zinc-500 dark:text-zinc-400 font-inter">{emptyMessage}</p>
       </div>
     );
   }
 
   return (
-    <div className={`bg-white rounded-lg border border-zinc-200 overflow-hidden ${className}`}>
+    <div className={`bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 overflow-hidden ${className}`}>
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-zinc-50 border-b border-zinc-200">
+          <thead className="bg-zinc-50 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-800">
             <tr>
               {columns.map((column) => (
                 <th
                   key={column.key}
-                  className={`text-sm font-medium text-zinc-900 p-4 font-inter ${getAlignClass(column.align)} ${
-                    column.sortable ? 'cursor-pointer select-none hover:bg-zinc-100 transition-colors' : ''
+                  className={`text-sm font-medium text-zinc-900 dark:text-zinc-100 p-4 font-inter ${getAlignClass(column.align)} ${
+                    column.sortable ? 'cursor-pointer select-none hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors' : ''
                   }`}
                   ref={(el) => { if (el && column.width) el.style.width = column.width; }}
                   onClick={() => handleSort(column.key, column.sortable)}
@@ -148,7 +148,7 @@ export function DataTable<T extends object>({
             {sortedData.map((item, index) => (
               <tr
                 key={index}
-                className={`border-b last:border-0 border-zinc-100 hover:bg-zinc-50/50 transition-colors ${
+                className={`border-b last:border-0 border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/50 transition-colors ${
                   onRowClick ? 'cursor-pointer' : ''
                 }`}
                 onClick={() => onRowClick?.(item)}
@@ -156,7 +156,7 @@ export function DataTable<T extends object>({
                 {columns.map((column) => (
                   <td
                     key={column.key}
-                    className={`p-4 text-sm font-inter text-zinc-600 ${getAlignClass(column.align)}`}
+                    className={`p-4 text-sm font-inter text-zinc-600 dark:text-zinc-400 ${getAlignClass(column.align)}`}
                     ref={(el) => { if (el && column.width) el.style.width = column.width; }}
                   >
                     {column.render 

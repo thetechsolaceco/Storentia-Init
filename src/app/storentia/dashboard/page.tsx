@@ -87,7 +87,7 @@ export default function DashboardPage() {
     <div className="space-y-8 font-sans">
       <div className=" flex items-center justify-between">
         <div>
-            <h1 className="text-4xl font-playfair font-medium tracking-tight text-emerald-950">Dashboard</h1>
+            <h1 className="text-4xl font-playfair font-medium tracking-tight text-emerald-950 dark:text-green-500">Dashboard</h1>
             <p className="text-gray-500 mt-2 font-inter">Welcome back to your store overview.</p>
         </div> 
       </div>

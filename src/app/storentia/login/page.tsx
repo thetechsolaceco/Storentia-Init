@@ -73,31 +73,24 @@ export default function LoginPage() {
 
   if (isChecking) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-black">
+      <div className="flex items-center justify-center min-h-screen bg-white dark:bg-black">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500" />
       </div>
     );
   }
 
   return (
-    <div className="relative flex items-center justify-center min-h-screen w-full bg-black overflow-hidden font-sans">
+    <div className="relative flex items-center justify-center min-h-screen w-full bg-white dark:bg-black overflow-hidden font-sans">
       {/* Background Gradients */}
-      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-emerald-900/20 rounded-full blur-[120px]" />
-      <div className="absolute bottom-[-10%] right-[-5%] w-[40%] h-[40%] bg-indigo-900/20 rounded-full blur-[100px]" />
-      
-       {/* Ambient Light Beam Effect */}
-       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[600px] h-[500px] bg-gradient-to-b from-indigo-500/10 via-emerald-500/5 to-transparent blur-3xl pointer-events-none" />
-
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-emerald-100/50 dark:bg-emerald-900/20 rounded-full blur-[120px]" />
+      <div className="absolute bottom-[-10%] right-[-5%] w-[40%] h-[40%] bg-indigo-100/50 dark:bg-indigo-900/20 rounded-full blur-[100px]" />
 
       <div className="relative z-10 w-full max-w-[420px] p-8 mx-4">
-        {/* Glass Card Container */}
-        <div className="absolute inset-0 bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl" />
+        {/* Card Container */}
+        <div className="absolute inset-0 bg-white dark:bg-white/5 backdrop-blur-xl rounded-3xl border border-gray-200 dark:border-white/10 shadow-xl" />
         
         <div className="relative z-20 flex flex-col items-center">
-            {/* Tag/Badge at top - purely decorative as per screenshot */}
-
-
-            <h1 className="font-playfair text-4xl text-white font-medium mb-12 tracking-tight text-center mt-4">
+            <h1 className="font-playfair text-4xl text-gray-900 dark:text-white font-medium mb-12 tracking-tight text-center mt-4">
             Welcome Back
             </h1>
 
@@ -105,31 +98,29 @@ export default function LoginPage() {
             
             {/* Email Input */}
             <div className="space-y-2">
-                <label className="text-xs text-zinc-400 font-medium ml-1">Email address</label>
+                <label className="text-xs text-gray-500 dark:text-zinc-400 font-medium ml-1">Email address</label>
                 <div className="relative group">
                     <input 
                         type="email" 
-                        defaultValue="rares@stream.com"
-                        className="w-full text-white border  rounded-xl px-4 py-3 focus:outline-none focus:border-green-500/60 transition-all placeholder:text-zinc-600"
+                        placeholder="you@example.com"
+                        className="w-full bg-gray-50 dark:bg-zinc-900/50 text-gray-900 dark:text-white border border-gray-200 dark:border-white/5 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-500/60 transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600"
                     />
-                    {/* Glow effect on input */}
-                    <div className="absolute inset-0 rounded-xl bg-green-500/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                 </div>
             </div>
 
              {/* Password Input */}
              <div className="space-y-2">
-                <label className="text-xs text-zinc-400 font-medium ml-1">Password</label>
+                <label className="text-xs text-gray-500 dark:text-zinc-400 font-medium ml-1">Password</label>
                 <div className="relative">
                     <input 
                         type={showPassword ? "text" : "password"}
                         placeholder="••••••••••"
-                        className="w-full bg-zinc-900/50 text-white border border-white/5 rounded-xl px-4 py-3 focus:outline-none focus:border-white/10 transition-all placeholder:text-zinc-600 pr-10"
+                        className="w-full bg-gray-50 dark:bg-zinc-900/50 text-gray-900 dark:text-white border border-gray-200 dark:border-white/5 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-500/60 transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 pr-10"
                     />
                     <button 
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-white transition-colors"
                     >
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -140,10 +131,10 @@ export default function LoginPage() {
             {/* Divider */}
             <div className="relative py-4">
                 <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-white/5"></span>
+                    <span className="w-full border-t border-gray-200 dark:border-white/5"></span>
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-transparent px-2 text-zinc-500">or Sign in with</span>
+                    <span className="bg-white dark:bg-transparent px-2 text-gray-500 dark:text-zinc-500">or Sign in with</span>
                 </div>
             </div>
 
@@ -151,7 +142,7 @@ export default function LoginPage() {
             <div className="grid grid-cols-2 gap-4">
                  <Button 
                     variant="outline" 
-                    className="h-12 bg-black/40 border-white/5 hover:bg-white/5 hover:text-white text-zinc-300 rounded-full gap-2 transition-all"
+                    className="h-12 bg-black dark:bg-black/40 border-gray-200 dark:border-white/5 hover:bg-gray-800 dark:hover:bg-white/5 text-white rounded-full gap-2 transition-all"
                     onClick={() => handleGoogleLogin()}
                 >
                     <GoogleIcon className="w-5 h-5" />
@@ -159,7 +150,7 @@ export default function LoginPage() {
                 </Button>
                 <Button 
                     variant="outline" 
-                    className="h-12 bg-black/40 border-white/5 hover:bg-white/5 hover:text-white text-zinc-300 rounded-full gap-2 transition-all"
+                    className="h-12 bg-black dark:bg-black/40 border-gray-200 dark:border-white/5 hover:bg-gray-800 dark:hover:bg-white/5 text-white rounded-full gap-2 transition-all"
                 >
                     <Github className="w-5 h-5" />
                     Github
@@ -168,9 +159,8 @@ export default function LoginPage() {
 
             {/* Footer */}
             <div className="space-y-4 text-center pt-4">
-                 
-                 <div className="text-[10px] text-zinc-600 leading-tight px-4">
-                    By signing up, you agree to the <span className="text-zinc-500 hover:text-zinc-400 cursor-pointer">Terms of Service</span>.
+                 <div className="text-[10px] text-gray-500 dark:text-zinc-600 leading-tight px-4">
+                    By signing up, you agree to the <span className="text-gray-600 dark:text-zinc-500 hover:text-gray-800 dark:hover:text-zinc-400 cursor-pointer">Terms of Service</span>.
                     <br />
                     You agree to receive our emails.
                  </div>

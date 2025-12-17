@@ -47,18 +47,18 @@ export function AdminSidebar({ collapsed, setCollapsed }: AdminSidebarProps) {
   return (
     <aside 
         className={cn(
-            "fixed left-3 top-3 h-[calc(100vh-24px)] bg-white   z-40 transition-all duration-300 flex flex-col rounded-3xl overflow-hidden",
+            "fixed left-3 top-3 h-[calc(100vh-24px)] bg-white dark:bg-black z-40 transition-all duration-300 flex flex-col rounded-3xl overflow-hidden",
             collapsed ? "w-[68px]" : "w-[232px]"
         )}
     >
       {/* Header */}
-      <div className={cn("h-16 flex items-center border-b ", collapsed ? "justify-center" : "justify-between px-4")}>
+      <div className={cn("h-16 flex items-center border-b border-gray-200 dark:border-zinc-800", collapsed ? "justify-center" : "justify-between px-4")}>
         {!collapsed && (
             <div className="flex items-center gap-3 overflow-hidden whitespace-nowrap">
-                <div className="h-8 w-8 bg-black rounded-lg flex items-center justify-center shrink-0">
-                    <Store className="h-4 w-4 text-white" />
+                <div className="h-8 w-8 bg-black dark:bg-white rounded-lg flex items-center justify-center shrink-0">
+                    <Store className="h-4 w-4 text-white dark:text-black" />
                 </div>
-                <span className="font-playfair font-bold text-lg text-black">Storentia</span>
+                <span className="font-playfair font-bold text-lg text-black dark:text-white">Storentia</span>
             </div>
         )}
         
@@ -66,7 +66,7 @@ export function AdminSidebar({ collapsed, setCollapsed }: AdminSidebarProps) {
             variant="ghost"
             size="icon"
             onClick={() => setCollapsed(!collapsed)}
-            className={cn("text-gray-500 hover:text-black hover:bg-gray-100", collapsed && "h-10 w-10")}
+            className={cn("text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800", collapsed && "h-10 w-10")}
         >
             {collapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
         </Button>
@@ -84,8 +84,8 @@ export function AdminSidebar({ collapsed, setCollapsed }: AdminSidebarProps) {
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative",
                     isActive
-                      ? "bg-gray-100 text-black"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-black",
+                      ? "bg-gray-100 dark:bg-zinc-800 text-black dark:text-white"
+                      : "text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-800/50 hover:text-black dark:hover:text-white",
                     collapsed && "justify-center px-2"
                   )}
                   title={collapsed ? item.label : undefined}
@@ -94,8 +94,8 @@ export function AdminSidebar({ collapsed, setCollapsed }: AdminSidebarProps) {
                     className={cn(
                       "h-5 w-5 shrink-0",
                       isActive
-                        ? "text-black"
-                        : "text-gray-500 group-hover:text-gray-700"
+                        ? "text-black dark:text-white"
+                        : "text-gray-500 dark:text-zinc-500 group-hover:text-gray-700 dark:group-hover:text-zinc-300"
                     )}
                   />
                   {!collapsed && <span className="text-sm font-medium">{item.label}</span>}
@@ -106,12 +106,12 @@ export function AdminSidebar({ collapsed, setCollapsed }: AdminSidebarProps) {
       </div>
 
       {/* Footer */}
-      <div className="p-4 border-t border-gray-200">
+      <div className="p-4 border-t border-gray-200 dark:border-zinc-800">
         <Button
           variant="ghost"
           onClick={logout}
           className={cn(
-            "w-full text-gray-600 hover:text-black hover:bg-gray-100 justify-start",
+            "w-full text-gray-600 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 justify-start",
             collapsed && "justify-center px-2"
           )}
         >

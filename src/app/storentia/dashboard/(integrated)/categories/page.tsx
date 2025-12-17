@@ -249,20 +249,20 @@ export default function CategoriesPage() {
     <div className="space-y-4 font-sans h-full flex flex-col">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-playfair font-medium tracking-tight text-emerald-950">Categories</h1>
-        <p className="text-gray-500 mt-1 text-sm font-inter">Manage and organize your product types.</p>
+        <h1 className="text-3xl font-playfair font-medium tracking-tight text-emerald-950 dark:text-white">Categories</h1>
+        <p className="text-gray-500 dark:text-zinc-400 mt-1 text-sm font-inter">Manage and organize your product types.</p>
       </div>
 
      {/* Table Filters & buttons */}
       <div className="py-3 flex items-center justify-between gap-3">
         {/* Search */}
         <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-zinc-500" />
             <input
                 placeholder="Search categories..."
                 value={searchTerm}
                 onChange={(e) => handleSearch(e.target.value)}
-                className="w-full bg-transparent pl-10 pr-4 py-2 text-sm placeholder:text-gray-400 text-gray-900 border-b-2 border-gray-300 focus:outline-none focus:border-black transition-colors"
+                className="w-full bg-transparent pl-10 pr-4 py-2 text-sm placeholder:text-gray-400 dark:placeholder:text-zinc-500 text-gray-900 dark:text-white border-b-2 border-gray-300 dark:border-zinc-700 focus:outline-none focus:border-black dark:focus:border-white transition-colors"
             />
         </div>
 
@@ -270,7 +270,7 @@ export default function CategoriesPage() {
         <Button 
             onClick={() => setCreateOpen(true)}
             size="sm"
-            className="h-9 px-4 bg-black text-white hover:bg-gray-800 rounded-md text-sm font-medium transition-colors"
+            className="h-9 px-4 bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-zinc-200 rounded-md text-sm font-medium transition-colors"
         >
             <Plus className="h-4 w-4 mr-1.5" />
             Create Category
@@ -290,25 +290,25 @@ export default function CategoriesPage() {
             </Button>
           </div>
         ) : collections.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-            <p className="text-gray-500 text-sm">No categories found matching your search.</p>
+          <div className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 p-8 text-center">
+            <p className="text-gray-500 dark:text-zinc-400 text-sm">No categories found matching your search.</p>
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50/80 border-b border-gray-200">
+                <thead className="bg-gray-50/80 dark:bg-zinc-800/50 border-b border-gray-200 dark:border-zinc-800">
                   <tr>
                     <th className="w-12 px-4 py-4">
                       <Checkbox 
                         checked={isAllSelected}
                         onCheckedChange={handleSelectAll}
-                        className="data-[state=checked]:bg-black data-[state=checked]:border-black"
+                        className="data-[state=checked]:bg-black dark:data-[state=checked]:bg-white data-[state=checked]:border-black dark:data-[state=checked]:border-white"
                         {...(isSomeSelected ? { "data-state": "indeterminate" } : {})}
                       />
                     </th>
                     <th 
-                      className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-4 cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                      className="text-left text-xs font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider px-4 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors select-none"
                       onClick={() => handleSort("title")}
                     >
                       <div className="flex items-center gap-1.5">
@@ -316,13 +316,13 @@ export default function CategoriesPage() {
                         {sortConfig?.key === "title" ? (
                           sortConfig.direction === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
                         ) : (
-                          <ChevronsUpDown className="h-4 w-4 text-gray-400" />
+                          <ChevronsUpDown className="h-4 w-4 text-gray-400 dark:text-zinc-500" />
                         )}
                       </div>
                     </th>
-                    <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-4">Description</th>
+                    <th className="text-left text-xs font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider px-4 py-4">Description</th>
                     <th 
-                      className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-4 cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                      className="text-left text-xs font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider px-4 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors select-none"
                       onClick={() => handleSort("productCount")}
                     >
                       <div className="flex items-center gap-1.5">
@@ -330,12 +330,12 @@ export default function CategoriesPage() {
                         {sortConfig?.key === "productCount" ? (
                           sortConfig.direction === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
                         ) : (
-                          <ChevronsUpDown className="h-4 w-4 text-gray-400" />
+                          <ChevronsUpDown className="h-4 w-4 text-gray-400 dark:text-zinc-500" />
                         )}
                       </div>
                     </th>
                     <th 
-                      className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-4 cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                      className="text-left text-xs font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider px-4 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors select-none"
                       onClick={() => handleSort("createdAt")}
                     >
                       <div className="flex items-center gap-1.5">
@@ -343,51 +343,51 @@ export default function CategoriesPage() {
                         {sortConfig?.key === "createdAt" ? (
                           sortConfig.direction === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
                         ) : (
-                          <ChevronsUpDown className="h-4 w-4 text-gray-400" />
+                          <ChevronsUpDown className="h-4 w-4 text-gray-400 dark:text-zinc-500" />
                         )}
                       </div>
                     </th>
-                    <th className="text-right text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-4">Actions</th>
+                    <th className="text-right text-xs font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider px-4 py-4">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-gray-100 dark:divide-zinc-800">
                   {sortedCollections.map((c) => (
-                    <tr key={c.id} className="hover:bg-gray-50/50 transition-colors">
+                    <tr key={c.id} className="hover:bg-gray-50/50 dark:hover:bg-zinc-800/50 transition-colors">
                       <td className="px-4 py-4">
                         <Checkbox 
                           checked={selectedIds.has(c.id)}
                           onCheckedChange={(checked) => handleSelectOne(c.id, checked as boolean)}
-                          className="data-[state=checked]:bg-black data-[state=checked]:border-black"
+                          className="data-[state=checked]:bg-black dark:data-[state=checked]:bg-white data-[state=checked]:border-black dark:data-[state=checked]:border-white"
                         />
                       </td>
                       <td className="px-4 py-4">
-                        <span className="font-medium text-gray-900 text-sm">{c.title}</span>
+                        <span className="font-medium text-gray-900 dark:text-white text-sm">{c.title}</span>
                       </td>
                       <td className="px-4 py-4">
-                        <span className="text-gray-500 text-sm truncate max-w-[200px] block" title={c.description}>
+                        <span className="text-gray-500 dark:text-zinc-400 text-sm truncate max-w-[200px] block" title={c.description}>
                           {c.description || '-'}
                         </span>
                       </td>
                       <td className="px-4 py-4">
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300">
                           {c.products?.length || 0}
                         </span>
                       </td>
                       <td className="px-4 py-4">
-                        <span className="text-gray-500 text-sm">
+                        <span className="text-gray-500 dark:text-zinc-400 text-sm">
                           {c.createdAt ? new Date(c.createdAt).toLocaleDateString() : '-'}
                         </span>
                       </td>
                       <td className="px-4 py-4">
                         <div className="flex items-center justify-end gap-2">
                           <button 
-                            className="p-1.5 text-gray-400 hover:text-black hover:bg-gray-100 rounded-md transition-colors"
+                            className="p-1.5 text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md transition-colors"
                             onClick={() => openEditDialog(c)}
                           >
                             <Pencil className="h-4 w-4" />
                           </button>
                           <button 
-                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                            className="p-1.5 text-gray-400 dark:text-zinc-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
                             onClick={() => openDeleteDialog(c)}
                           >
                             <Trash2 className="h-4 w-4" />
