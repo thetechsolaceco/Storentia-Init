@@ -5,8 +5,9 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  image?: string;
+  avatar?: string;
   role?: string;
+  status?: string;
 }
 
 export interface StoreOwner {
@@ -43,6 +44,19 @@ export interface ValidationResponse {
   store_data?: StoreData;
 }
 
+export interface UserResponse {
+  success: boolean;
+  data?: {
+    user: User;
+  };
+}
+
+export interface AuthResponse {
+  success: boolean;
+  message: string;
+  user?: User;
+}
+
 export const authAPI = {
   async validateKey(apiKey: string): Promise<ValidationResponse> {
     try {
@@ -71,49 +85,73 @@ export const authAPI = {
   initiateGoogleAuth(): void {
     window.location.href = `${BASE_URL}${API_ENDPOINTS.AUTH_GOOGLE}`;
   },
+
+  async getCurrentUser(): Promise<UserResponse> {
+    try {
+      const response = await fetch(`${BASE_URL}${API_ENDPOINTS.USER_ME}`, {
+        method: "GET",
+        credentials: "include",
+      });
+      if (!response.ok) {
+        return { success: false };
+      }
+      const data: UserResponse = await response.json();
+      return data;
+    } catch {
+      return { success: false };
+    }
+  },
+
+  async logout(): Promise<void> {
+    try {
+      await fetch(`${BASE_URL}${API_ENDPOINTS.AUTH_LOGOUT}`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+    clearUserSession();
+  },
 };
 
 const STORAGE_KEYS = {
-  TOKEN: "storentia_token",
   USER: "storentia_user",
   API_KEY: "storentia_api_key",
   STORE: "storentia_store",
 } as const;
 
-export function setUserSession(token: string, user: User): void {
+export function setUserSession(user: User): void {
   if (typeof window !== "undefined") {
-    localStorage.setItem(STORAGE_KEYS.TOKEN, token);
     localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
   }
 }
 
-export function getUserSession(): { token: string | null; user: User | null } {
+export function getUserSession(): { user: User | null } {
   if (typeof window === "undefined") {
-    return { token: null, user: null };
+    return { user: null };
   }
-  const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
   const userStr = localStorage.getItem(STORAGE_KEYS.USER);
   const user = userStr ? JSON.parse(userStr) : null;
-  return { token, user };
+  return { user };
 }
 
 export function clearUserSession(): void {
   if (typeof window !== "undefined") {
-    localStorage.removeItem(STORAGE_KEYS.TOKEN);
     localStorage.removeItem(STORAGE_KEYS.USER);
     localStorage.removeItem(STORAGE_KEYS.API_KEY);
     localStorage.removeItem(STORAGE_KEYS.STORE);
   }
 }
 
-export function isAuthenticated(): boolean {
-  if (typeof window === "undefined") return false;
-  return !!localStorage.getItem(STORAGE_KEYS.TOKEN);
+export async function isAuthenticated(): Promise<boolean> {
+  const result = await authAPI.getCurrentUser();
+  return result.success && !!result.data?.user;
 }
 
-export function getAuthToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem(STORAGE_KEYS.TOKEN);
+export function isAuthenticatedLocal(): boolean {
+  if (typeof window === "undefined") return false;
+  return !!localStorage.getItem(STORAGE_KEYS.USER);
 }
 
 export function setApiKey(apiKey: string): void {

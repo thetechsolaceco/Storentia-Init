@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/components/providers/auth-provider";
 import { Bell, Search, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,26 +15,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getUserSession, clearUserSession, type User } from "@/lib/apiClients";
-import { useRouter } from "next/navigation";
 
 export function AdminHeader() {
-  const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
+  const { user, logout, isLoading } = useAuth();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const { user } = getUserSession();
-    setUser(user);
+    setMounted(true);
   }, []);
-
-  const handleLogout = () => {
-    clearUserSession();
-    router.push("/dashboard/login");
-  };
 
   const userName = user?.name || "User";
   const userEmail = user?.email || "";
-  const userImage = user?.image || "";
+  const userAvatar = user?.avatar || "";
   const initials = userName
     .split(" ")
     .map((n) => n[0])
@@ -61,38 +54,50 @@ export function AdminHeader() {
           <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full" />
         </Button>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <div className="flex items-center gap-3 pl-4 border-l cursor-pointer hover:opacity-80 transition-opacity">
-              <div className="text-right hidden md:block">
-                <p className="text-sm font-medium">{userName}</p>
-                <p className="text-xs text-muted-foreground">{userEmail}</p>
+        {mounted ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <div className="flex items-center gap-3 pl-4 border-l cursor-pointer hover:opacity-80 transition-opacity">
+                <div className="text-right hidden md:block">
+                  <p className="text-sm font-medium">{userName}</p>
+                  <p className="text-xs text-muted-foreground">{userEmail}</p>
+                </div>
+                <Avatar>
+                  <AvatarImage src={userAvatar} />
+                  <AvatarFallback>{initials}</AvatarFallback>
+                </Avatar>
               </div>
-              <Avatar>
-                <AvatarImage src={userImage} />
-                <AvatarFallback>{initials}</AvatarFallback>
-              </Avatar>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>
+                <div>
+                  <p className="font-medium">{userName}</p>
+                  <p className="text-xs text-muted-foreground font-normal">
+                    {userEmail}
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={logout}
+                className="text-red-600 cursor-pointer"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <div className="flex items-center gap-3 pl-4 border-l">
+            <div className="text-right hidden md:block">
+              <p className="text-sm font-medium">{userName}</p>
+              <p className="text-xs text-muted-foreground">{userEmail}</p>
             </div>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>
-              <div>
-                <p className="font-medium">{userName}</p>
-                <p className="text-xs text-muted-foreground font-normal">
-                  {userEmail}
-                </p>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={handleLogout}
-              className="text-red-600 cursor-pointer"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            <Avatar>
+              <AvatarFallback>{initials}</AvatarFallback>
+            </Avatar>
+          </div>
+        )}
       </div>
     </header>
   );
