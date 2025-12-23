@@ -68,13 +68,24 @@ function ProductsContent() {
     try {
       const response = await storeAPI.getPublicProducts({
         page,
-        limit: 12,
-        collectionId: selectedCollection || undefined,
+        limit: 50, // Fetch more to allow client-side filtering
         search: searchTerm || undefined,
       });
       if (response.success && response.data) {
-        setProducts(response.data || []);
-        setTotalPages(response.pagination?.totalPages || 1);
+        let filteredProducts = response.data || [];
+        
+        // Client-side collection filtering if API doesn't support it
+        if (selectedCollection) {
+          filteredProducts = filteredProducts.filter((product) =>
+            product.collections?.some((col: any) => 
+              col.collectionId === selectedCollection || 
+              col.collection?.id === selectedCollection
+            )
+          );
+        }
+        
+        setProducts(filteredProducts);
+        setTotalPages(Math.ceil(filteredProducts.length / 12) || 1);
       } else {
         setError(response.message || "Failed to load products");
       }

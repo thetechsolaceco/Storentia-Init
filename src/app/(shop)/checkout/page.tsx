@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Loader2, MapPin, Plus, Minus, Trash2, ShoppingBag, Check } from "lucide-react";
 import Link from "next/link";
@@ -161,6 +162,7 @@ export default function CheckoutPage() {
       {/* Success Popup */}
       <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
         <DialogContent className="sm:max-w-md text-center">
+          <DialogTitle className="sr-only">Order Placed Successfully</DialogTitle>
           <div className="flex flex-col items-center py-6">
             <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-4 animate-[scale-in_0.3s_ease-out]">
               <Check className="h-10 w-10 text-green-600 animate-[check-draw_0.4s_ease-out_0.2s_both]" strokeWidth={3} />
