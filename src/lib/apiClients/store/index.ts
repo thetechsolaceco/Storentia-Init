@@ -5,10 +5,23 @@ export interface StoreInfo {
   id: string;
   name: string;
   description?: string;
-  logo?: string;
-  ownerId: string;
+  favicon?: string | null;
+  logoBlackWhite?: string | null;
+  logoColoured?: string | null;
+  socialMediaUrls?: {
+    twitter?: string;
+    youtube?: string;
+    facebook?: string;
+    linkedin?: string;
+    instagram?: string;
+  };
+  whatsappNumber?: string;
+  address?: string;
+  mobile?: string;
+  landline?: string;
+  contactEmail?: string;
+  supportEmail?: string;
   createdAt: string;
-  updatedAt: string;
 }
 
 export interface StoreInfoResponse {
@@ -114,7 +127,7 @@ export const storeAPI = {
   async getStore(storeId?: string): Promise<StoreInfoResponse> {
     try {
       const id = storeId || getStoreId();
-      const response = await fetch(`${BASE_URL}/api/store/${id}`, {
+      const response = await fetch(`${BASE_URL}/store/${id}/public/store`, {
         method: "GET",
         credentials: "include",
       });
@@ -184,6 +197,42 @@ export const storeAPI = {
       const id = storeId || getStoreId();
       const response = await fetch(
         `${BASE_URL}/store/${id}/public/products/${productId}`,
+        { method: "GET", credentials: "include" }
+      );
+
+      if (!response.ok) {
+        return { success: false, message: `API Error: ${response.status}` };
+      }
+      return response.json();
+    } catch (error) {
+      return { success: false, message: error instanceof Error ? error.message : "Network error" };
+    }
+  },
+
+  // Get trending products
+  async getTrendingProducts(limit: number = 20, storeId?: string): Promise<StoreProductsResponse> {
+    try {
+      const id = storeId || getStoreId();
+      const response = await fetch(
+        `${BASE_URL}/store/${id}/public/products/trending?limit=${limit}`,
+        { method: "GET", credentials: "include" }
+      );
+
+      if (!response.ok) {
+        return { success: false, message: `API Error: ${response.status}` };
+      }
+      return response.json();
+    } catch (error) {
+      return { success: false, message: error instanceof Error ? error.message : "Network error" };
+    }
+  },
+
+  // Get recommended products
+  async getRecommendedProducts(limit: number = 20, storeId?: string): Promise<StoreProductsResponse> {
+    try {
+      const id = storeId || getStoreId();
+      const response = await fetch(
+        `${BASE_URL}/store/${id}/public/products/recommended?limit=${limit}`,
         { method: "GET", credentials: "include" }
       );
 
