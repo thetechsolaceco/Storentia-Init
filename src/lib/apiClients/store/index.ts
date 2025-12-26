@@ -42,6 +42,17 @@ export interface StoreProductImage {
   updatedAt: string;
 }
 
+export interface ProductCollection {
+  id: string;
+  productId: string;
+  collectionId: string;
+  createdAt: string;
+  collection: {
+    id: string;
+    title: string;
+  };
+}
+
 export interface StoreProduct {
   id: string;
   title: string;
@@ -53,7 +64,11 @@ export interface StoreProduct {
   updatedAt: string;
   user_cartId?: string | null;
   images: StoreProductImage[];
-  collections: unknown[];
+  collections: ProductCollection[];
+  _count?: {
+    orderItems: number;
+    wishlists: number;
+  };
 }
 
 export interface StoreProductsResponse {
