@@ -1,27 +1,39 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useParams, notFound } from "next/navigation";
 import { getContentBySlug, POLICY_KEYS, type ContentItem } from "@/lib/apiClients";
-import { useAppSelector } from "@/lib/store/hooks";
-import { selectStoreInfo } from "@/lib/store/storeSlice";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function AboutPage() {
-  const storeInfo = useAppSelector(selectStoreInfo);
+// Valid policy slugs
+const VALID_SLUGS = Object.values(POLICY_KEYS);
+
+export default function PolicyPage() {
+  const params = useParams();
+  const slug = params.slug as string;
   const [content, setContent] = useState<ContentItem | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchContent = async () => {
-      const result = await getContentBySlug(POLICY_KEYS.ABOUT);
+      if (!VALID_SLUGS.includes(slug as typeof POLICY_KEYS[keyof typeof POLICY_KEYS])) {
+        setError("Page not found");
+        setLoading(false);
+        return;
+      }
+
+      const result = await getContentBySlug(slug);
       if (result.success && result.data) {
         setContent(result.data);
+      } else {
+        setError(result.message || "Content not found");
       }
       setLoading(false);
     };
 
     fetchContent();
-  }, []);
+  }, [slug]);
 
   if (loading) {
     return (
@@ -36,20 +48,11 @@ export default function AboutPage() {
     );
   }
 
-  // If no about-us content from API, show store description
-  if (!content) {
+  if (error || !content) {
     return (
-      <div className="container py-12 max-w-4xl">
-        <h1 className="text-3xl font-bold mb-6">About Us</h1>
-        {storeInfo?.description ? (
-          <p className="text-muted-foreground text-lg leading-relaxed">
-            {storeInfo.description}
-          </p>
-        ) : (
-          <p className="text-muted-foreground">
-            Welcome to our store. We are committed to providing you with the best products and services.
-          </p>
-        )}
+      <div className="container py-12 max-w-4xl text-center">
+        <h1 className="text-2xl font-bold mb-4">Page Not Found</h1>
+        <p className="text-muted-foreground">The requested policy page could not be found.</p>
       </div>
     );
   }
