@@ -107,3 +107,10 @@ export {
   type OrdersResponse,
   type CreateOrderResponse,
 } from "./store/order";
+
+// Contact Form API
+export {
+  submitContactForm,
+  type ContactFormRequest,
+  type ContactFormResponse,
+} from "./store/contact";
