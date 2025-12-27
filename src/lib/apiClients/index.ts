@@ -71,12 +71,14 @@ export {
   removeFromCart,
   clearCart,
   updateCartItemQuantity,
+  addMultipleToCart,
   type Cart,
   type CartItem,
   type CartResponse,
   type CartSummary,
   type CartSummaryResponse,
   type AddToCartRequest,
+  type AddMultipleToCartRequest,
 } from "./store/cart";
 
 // Wishlist APIs

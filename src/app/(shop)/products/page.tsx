@@ -21,19 +21,21 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, ShoppingCart, Heart, Minus, Plus, Check } from "lucide-react";
 import {
   storeAPI,
-  addToCart,
+  addToCart as addToCartAPI,
   addToWishlist,
   type StoreProduct,
   type StoreCollection,
 } from "@/lib/apiClients";
-import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
-import { selectCartItems, addItem, updateQuantity, removeItem } from "@/lib/store/cartSlice";
+import { isAuthenticated } from "@/lib/apiClients/store/authentication";
+import { useAppDispatch } from "@/lib/store/hooks";
+import { addItem, updateQuantity, removeItem } from "@/lib/store/cartSlice";
+import { useCart } from "@/hooks/useCart";
 
 function ProductsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
-  const cartItems = useAppSelector(selectCartItems);
+  const { isInCart, getItemQuantity, isAuth } = useCart();
   const initialSearch = searchParams.get("search") || "";
 
   const [products, setProducts] = useState<StoreProduct[]>([]);
@@ -49,7 +51,7 @@ function ProductsContent() {
   const [loadingCart, setLoadingCart] = useState<string | null>(null);
   const [loadingWishlist, setLoadingWishlist] = useState<string | null>(null);
 
-  const getCartItem = (productId: string) => cartItems.find((item) => item.productId === productId);
+  // Helper to get cart item info - uses auth-aware hook
 
   const fetchCollections = async () => {
     try {
@@ -146,18 +148,24 @@ function ProductsContent() {
     e.stopPropagation();
     setLoadingCart(product.id);
     try {
-      const result = await addToCart({ productId: product.id, quantity: 1 });
-      if (result.success) {
+      if (isAuth) {
+        // Use API for authenticated users
+        const result = await addToCartAPI({ productId: product.id, quantity: 1 });
+        if (result.success) {
+          window.dispatchEvent(new Event('cart-update'));
+        } else {
+          console.error("Failed to add to cart:", result.error);
+        }
+      } else {
+        // Use local cart for guest users
         dispatch(addItem({
-          id: product.id,
+          id: `local_${product.id}_${Date.now()}`,
           productId: product.id,
           title: product.title,
           price: product.price,
           quantity: 1,
           image: product.images?.[0]?.url,
         }));
-      } else {
-        console.error("Failed to add to cart:", result.error);
       }
     } catch (error) {
       console.error("Error adding to cart:", error);
@@ -368,24 +376,27 @@ function ProductsContent() {
                         </p>
                         <div className="flex gap-2 mt-3">
                           {(() => {
-                            const cartItem = getCartItem(product.id);
-                            if (cartItem) {
+                            const inCart = isInCart(product.id);
+                            const quantity = getItemQuantity(product.id);
+                            if (inCart) {
                               return (
                                 <div className="flex items-center gap-2 flex-1">
                                   <Button
                                     size="sm"
                                     variant="outline"
                                     className="h-8 w-8 p-0"
-                                    onClick={(e) => handleUpdateQuantity(e, product, cartItem.quantity - 1)}
+                                    onClick={(e) => handleUpdateQuantity(e, product, quantity - 1)}
+                                    disabled={isAuth}
                                   >
                                     <Minus className="h-3 w-3" />
                                   </Button>
-                                  <span className="w-8 text-center text-sm font-medium">{cartItem.quantity}</span>
+                                  <span className="w-8 text-center text-sm font-medium">{quantity}</span>
                                   <Button
                                     size="sm"
                                     variant="outline"
                                     className="h-8 w-8 p-0"
-                                    onClick={(e) => handleUpdateQuantity(e, product, cartItem.quantity + 1)}
+                                    onClick={(e) => handleUpdateQuantity(e, product, quantity + 1)}
+                                    disabled={isAuth}
                                   >
                                     <Plus className="h-3 w-3" />
                                   </Button>

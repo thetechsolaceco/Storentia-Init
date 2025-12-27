@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,41 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { sendOtp, verifyOtp } from '@/lib/apiClients/store/authentication';
+import { addMultipleToCart } from '@/lib/apiClients';
+
+const CART_STORAGE_KEY = "storentia_cart";
+
+// Sync local cart to server and clear local storage
+async function syncLocalCartToServer(): Promise<void> {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    const stored = localStorage.getItem(CART_STORAGE_KEY);
+    if (!stored) return;
+    
+    const localItems = JSON.parse(stored);
+    if (!localItems || localItems.length === 0) return;
+    
+    // Transform local cart items to API format
+    const items = localItems.map((item: any) => ({
+      productId: item.productId,
+      quantity: item.quantity,
+    }));
+    
+    // Try to sync to server (don't wait for success)
+    try {
+      await addMultipleToCart({ items });
+    } catch (error) {
+      console.warn('Cart sync API failed:', error);
+    }
+  } catch (error) {
+    console.error('Error parsing cart:', error);
+  } finally {
+    // Always clear local cart after login/signup
+    localStorage.removeItem(CART_STORAGE_KEY);
+    window.dispatchEvent(new Event('cart-update'));
+  }
+}
 
 function LoginPage() {
   const [email, setEmail] = useState('');
@@ -25,6 +60,8 @@ function LoginPage() {
   const [storeConfigured, setStoreConfigured] = useState(false);
   const [checking, setChecking] = useState(true);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get('redirect') || '/';
 
   useEffect(() => {
     const storeId = process.env.NEXT_PUBLIC_STORENTIA_STOREID;
@@ -72,8 +109,11 @@ function LoginPage() {
       const result = await verifyOtp({ email, otp });
       
       if (result.success) {
+        // Sync local cart to server after successful login
+        await syncLocalCartToServer();
+        
         window.dispatchEvent(new Event('auth-change'));
-        router.push('/');
+        router.push(redirectUrl);
         router.refresh();
       } else {
         setError(result.error || 'Invalid OTP');

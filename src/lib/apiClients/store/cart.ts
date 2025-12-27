@@ -175,3 +175,33 @@ export async function updateCartItemQuantity(itemId: string, quantity: number): 
     return { success: false, error: error instanceof Error ? error.message : "Network error" };
   }
 }
+
+export interface AddMultipleToCartRequest {
+  items: Array<{
+    productId: string;
+    quantity: number;
+  }>;
+}
+
+export async function addMultipleToCart(data: AddMultipleToCartRequest): Promise<CartResponse> {
+  try {
+    const storeId = getStoreId();
+    const url = `${BASE_URL}/store/${storeId}/cart/multiple`;
+    
+    const response = await fetch(url, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      return { success: false, error: result.error?.message || result.message || `API Error: ${response.status}` };
+    }
+    return result;
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : "Network error" };
+  }
+}

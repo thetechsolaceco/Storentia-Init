@@ -13,20 +13,33 @@ import {
 } from "@/components/ui/dialog";
 import { Loader2, MapPin, Plus, Minus, Trash2, ShoppingBag, Check } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   createOrder,
   getAllAddresses,
   createAddress,
+  getCart,
+  updateCartItemQuantity as updateCartItemQuantityAPI,
+  removeFromCart as removeFromCartAPI,
   type Address,
   type CreateAddressRequest,
+  type CartItem as APICartItem,
 } from "@/lib/apiClients";
-import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
-import { selectCartItems, selectCartTotal, clearCart, updateQuantity, removeItem } from "@/lib/store/cartSlice";
+import { isAuthenticated } from "@/lib/apiClients/store/authentication";
+
+interface CheckoutCartItem {
+  id: string;
+  productId: string;
+  title: string;
+  price: number;
+  quantity: number;
+}
 
 export default function CheckoutPage() {
-  const dispatch = useAppDispatch();
-  const cartItems = useAppSelector(selectCartItems);
-  const cartTotal = useAppSelector(selectCartTotal);
+  const router = useRouter();
+  const [cartItems, setCartItems] = useState<CheckoutCartItem[]>([]);
+  const [cartTotal, setCartTotal] = useState(0);
+  const [cartLoading, setCartLoading] = useState(true);
 
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
@@ -50,8 +63,43 @@ export default function CheckoutPage() {
   });
 
   useEffect(() => {
+    // Redirect to login if not authenticated
+    if (!isAuthenticated()) {
+      router.push('/login?redirect=/checkout');
+      return;
+    }
+    
     fetchAddresses();
-  }, []);
+    fetchCart();
+  }, [router]);
+
+  const fetchCart = async () => {
+    setCartLoading(true);
+    try {
+      const result = await getCart();
+      if (result.success && result.data?.cartItems) {
+        const items: CheckoutCartItem[] = result.data.cartItems.map((item: APICartItem) => ({
+          id: item.id,
+          productId: item.productId,
+          title: item.product?.title || "Product",
+          price: item.product?.price || 0,
+          quantity: item.quantity,
+        }));
+        setCartItems(items);
+        const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        setCartTotal(total);
+      } else {
+        setCartItems([]);
+        setCartTotal(0);
+      }
+    } catch (error) {
+      console.error("Failed to fetch cart:", error);
+      setCartItems([]);
+      setCartTotal(0);
+    } finally {
+      setCartLoading(false);
+    }
+  };
 
   const fetchAddresses = async () => {
     setLoading(true);
@@ -95,11 +143,34 @@ export default function CheckoutPage() {
     setSavingAddress(false);
   };
 
-  const handleUpdateQuantity = (productId: string, newQuantity: number) => {
+  const handleUpdateQuantity = async (item: CheckoutCartItem, newQuantity: number) => {
     if (newQuantity < 1) {
-      dispatch(removeItem(productId));
+      // Remove item
+      try {
+        const result = await removeFromCartAPI(item.id);
+        if (result.success) {
+          setCartItems(items => items.filter(i => i.id !== item.id));
+          setCartTotal(prev => prev - item.price * item.quantity);
+          window.dispatchEvent(new Event('cart-update'));
+        }
+      } catch (error) {
+        console.error("Failed to remove item:", error);
+      }
     } else {
-      dispatch(updateQuantity({ productId, quantity: newQuantity }));
+      // Update quantity
+      try {
+        const result = await updateCartItemQuantityAPI(item.id, newQuantity);
+        if (result.success) {
+          const diff = newQuantity - item.quantity;
+          setCartItems(items => 
+            items.map(i => i.id === item.id ? { ...i, quantity: newQuantity } : i)
+          );
+          setCartTotal(prev => prev + item.price * diff);
+          window.dispatchEvent(new Event('cart-update'));
+        }
+      } catch (error) {
+        console.error("Failed to update quantity:", error);
+      }
     }
   };
 
@@ -134,14 +205,17 @@ export default function CheckoutPage() {
     setIsPlacingOrder(false);
 
     if (response.success) {
-      dispatch(clearCart());
+      // Clear cart and refresh
+      window.dispatchEvent(new Event('cart-update'));
+      setCartItems([]);
+      setCartTotal(0);
       setShowSuccess(true);
     } else {
       setError(response.message || "Failed to place order");
     }
   };
 
-  if (loading) {
+  if (loading || cartLoading) {
     return (
       <div className="container py-20 flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -297,7 +371,7 @@ export default function CheckoutPage() {
                 <>
                   <div className="space-y-3">
                     {cartItems.map((item) => (
-                      <div key={item.productId} className="flex items-center justify-between gap-2 py-2">
+                      <div key={item.id} className="flex items-center justify-between gap-2 py-2">
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{item.title}</p>
                           <p className="text-sm text-muted-foreground">${item.price.toFixed(2)}</p>
@@ -307,7 +381,7 @@ export default function CheckoutPage() {
                             variant="outline"
                             size="icon"
                             className="h-7 w-7"
-                            onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
+                            onClick={() => handleUpdateQuantity(item, item.quantity - 1)}
                           >
                             {item.quantity === 1 ? (
                               <Trash2 className="h-3 w-3" />
@@ -320,7 +394,7 @@ export default function CheckoutPage() {
                             variant="outline"
                             size="icon"
                             className="h-7 w-7"
-                            onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
+                            onClick={() => handleUpdateQuantity(item, item.quantity + 1)}
                           >
                             <Plus className="h-3 w-3" />
                           </Button>

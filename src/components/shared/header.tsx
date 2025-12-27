@@ -49,6 +49,7 @@ import {
 import { getOrders, storeAPI, type Order, type StoreProduct } from "@/lib/apiClients";
 import { useAppSelector } from "@/lib/store/hooks";
 import { selectStoreInfo } from "@/lib/store/storeSlice";
+import { useCart } from "@/hooks/useCart";
 
 const ORDER_STEPS = ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED"];
 
@@ -84,6 +85,9 @@ export function Header() {
   const router = useRouter();
   const storeInfo = useAppSelector(selectStoreInfo);
   const storeName = storeInfo?.name || "StoreKit";
+  
+  // Cart hook for count badge
+  const { count: cartCount } = useCart();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -426,13 +430,22 @@ export function Header() {
                   </div>
                 </PopoverContent>
               </Popover>
+            </>
+          )}
+          
+          {/* Cart Icon - Always visible */}
+          {isHydrated && (
               <Link href="/cart">
                 <Button variant="ghost" size="icon" className="relative">
                   <ShoppingCart className="h-5 w-5" />
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                      {cartCount > 99 ? '99+' : cartCount}
+                    </span>
+                  )}
                   <span className="sr-only">Cart</span>
                 </Button>
               </Link>
-            </>
           )}
           {isHydrated ? (
             <DropdownMenu>

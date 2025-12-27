@@ -6,18 +6,18 @@ import { useParams, useRouter } from "next/navigation";
 import { Heart, ShoppingCart, Star, Loader2, ArrowLeft, Minus, Plus, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { storeAPI, addToCart, addToWishlist, getWishlist, removeFromWishlist, type StoreProduct } from "@/lib/apiClients";
+import { storeAPI, addToCart as addToCartAPI, addToWishlist, getWishlist, removeFromWishlist, type StoreProduct } from "@/lib/apiClients";
 import { isAuthenticated } from "@/lib/apiClients/store/authentication";
-import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
-import { selectCartItems, addItem, updateQuantity, removeItem } from "@/lib/store/cartSlice";
+import { useCart } from "@/hooks/useCart";
 import Link from "next/link";
 
 export default function ProductPage() {
   const params = useParams();
   const router = useRouter();
-  const dispatch = useAppDispatch();
-  const cartItems = useAppSelector(selectCartItems);
   const productId = params.id as string;
+  
+  // Use the cart hook for guest cart functionality
+  const { addToCart, getItemQuantity, updateItemQuantity, isInCart, isAuth } = useCart();
 
   const [product, setProduct] = useState<StoreProduct | null>(null);
   const [loading, setLoading] = useState(true);
@@ -29,7 +29,8 @@ export default function ProductPage() {
   const [wishlistItemId, setWishlistItemId] = useState<string | null>(null);
   const [togglingWishlist, setTogglingWishlist] = useState(false);
 
-  const cartItem = cartItems.find((item) => item.productId === productId);
+  const cartQuantity = getItemQuantity(productId);
+  const productInCart = isInCart(productId);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -95,32 +96,23 @@ export default function ProductPage() {
   const mainImage = product.images?.[selectedImage]?.url || "/placeholder.svg";
 
   const handleAddToCart = async () => {
-    if (!isAuthenticated()) {
-      router.push('/login');
-      return;
-    }
-
-    if (!product?.id) {
-      setError('Product not found');
-      return;
-    }
+    if (!product) return;
 
     setAddingToCart(true);
     setError(null);
+    
     try {
-      const result = await addToCart({ productId: product.id, quantity });
-      if (result.success) {
-        dispatch(addItem({
-          id: product.id,
-          productId: product.id,
-          title: product.title,
-          price: product.price,
-          quantity,
-          image: product.images?.[0]?.url,
-        }));
-        window.dispatchEvent(new Event('cart-update'));
+      if (isAuth) {
+        // Use API for authenticated users
+        const result = await addToCartAPI({ productId: product.id, quantity });
+        if (result.success) {
+          window.dispatchEvent(new Event('cart-update'));
+        } else {
+          setError(result.error || 'Failed to add to cart');
+        }
       } else {
-        setError(result.error || 'Failed to add to cart');
+        // Use local cart for guest users
+        addToCart(product, quantity);
       }
     } catch (err) {
       setError('Failed to add to cart');
@@ -130,11 +122,7 @@ export default function ProductPage() {
   };
 
   const handleUpdateCartQuantity = (newQuantity: number) => {
-    if (newQuantity < 1) {
-      dispatch(removeItem(productId));
-      return;
-    }
-    dispatch(updateQuantity({ productId, quantity: newQuantity }));
+    updateItemQuantity(productId, newQuantity);
   };
 
   const handleToggleWishlist = async () => {
@@ -263,7 +251,7 @@ export default function ProductPage() {
           </div>
 
           <div className="flex gap-4 pt-4">
-            {cartItem ? (
+            {productInCart ? (
               <div className="flex-1 flex items-center gap-4 p-3 border rounded-lg bg-muted/30">
                 <span className="text-sm font-medium flex items-center gap-2">
                   <Check className="h-4 w-4 text-green-600" /> In Cart
@@ -273,16 +261,18 @@ export default function ProductPage() {
                     variant="outline"
                     size="icon"
                     className="h-8 w-8"
-                    onClick={() => handleUpdateCartQuantity(cartItem.quantity - 1)}
+                    onClick={() => handleUpdateCartQuantity(cartQuantity - 1)}
+                    disabled={isAuth}
                   >
                     <Minus className="h-3 w-3" />
                   </Button>
-                  <span className="w-10 text-center font-medium">{cartItem.quantity}</span>
+                  <span className="w-10 text-center font-medium">{cartQuantity}</span>
                   <Button
                     variant="outline"
                     size="icon"
                     className="h-8 w-8"
-                    onClick={() => handleUpdateCartQuantity(cartItem.quantity + 1)}
+                    onClick={() => handleUpdateCartQuantity(cartQuantity + 1)}
+                    disabled={isAuth}
                   >
                     <Plus className="h-3 w-3" />
                   </Button>
